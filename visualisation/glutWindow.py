@@ -8,7 +8,11 @@ import OpenGL.GLU as glu
 
 class GlutWindow(object):
 
+    def print_gpu_info(self):
+        print(gl.glGetString(gl.GL_VENDOR))
+
     def init_opengl(self):
+        self.print_gpu_info()
         gl.glClearColor(0.0,0,0.4,0)
         gl.glDepthFunc(gl.GL_LESS)
         gl.glEnable(gl.GL_DEPTH_TEST)
@@ -72,7 +76,7 @@ class GlutWindow(object):
         oglut.glutInit(sys.argv)
         oglut.glutInitDisplayMode(oglut.GLUT_RGBA | oglut.GLUT_DOUBLE | oglut.GLUT_DEPTH)
         oglut.glutInitWindowSize(800, 480)
-        self.window = oglut.glutCreateWindow(b"window")
+        self.window = oglut.glutCreateWindow(b"200k particles")
         # oglut.glutDisplayFunc(self.display)
         #oglut.glutIdleFunc(self.display) 
         oglut.glutReshapeFunc(self.resize)
@@ -101,7 +105,7 @@ class GlutWindow(object):
             passedTime = currentTime - self.last_fps_update
             self.last_fps_update = currentTime
             fps = math.floor(numFpsFrames / passedTime)
-            oglut.glutSetWindowTitle("Window " + str(fps) + " fps")
+            oglut.glutSetWindowTitle("200k particles " + str(fps) + " fps")
         self.display()
         render_time = (time.perf_counter() - currentTime) * 1000
         oglut.glutTimerFunc(max(0, math.floor((1000.0 / self.target_fps) - render_time)), self.timerCallback, 0)

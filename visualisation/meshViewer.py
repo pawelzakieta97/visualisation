@@ -25,6 +25,7 @@ class MeshViewWindow(GlutWindow):
         self.light = light
 
     def init_opengl(self):
+        self.print_gpu_info()
         glClearColor(0.1, 0.1, 0.1, 0.8)
         glDepthFunc(GL_LESS)
         glEnable(GL_DEPTH_TEST)
