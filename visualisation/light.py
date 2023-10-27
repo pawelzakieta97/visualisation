@@ -1,9 +1,11 @@
-from dataclasses import dataclass
-
 import numpy as np
 
 
-@dataclass
 class Light:
-    position: np.array
-    color: np.array
+    def __init__(self, position: np.array = None, color: np.array = None):
+        if position is None:
+            position = np.array([10, 10, 10])
+        if color is None:
+            color = np.array([1, 1, 1])
+        self.position = position
+        self.color = color
