@@ -20,3 +20,10 @@ try
 `Attempt to retrieve context when no valid context`
 modify the condition https://github.com/mcfletch/pyopengl/blob/29b79e8966ba2930a5c44829b02dffc1ca600752/OpenGL/contextdata.py#L38
 to omit the check for 0 value of context (for example change line 38 to `if context == 0 and False:`)
+
+Known issues on Windows
+
+ - If you get
+`Attempt to call an undefined function glutInit, check for bool(glutInit) before calling`
+Install PyOpenGL form downloaded whl according to your python version:
+https://drive.google.com/drive/folders/1mz7faVsrp0e6IKCQh8MyZh-BcCqEGPwx
