@@ -1,6 +1,8 @@
 # Python 3D visualisation
 
 3D visualisation engine based on OpenGL.
+![image](https://github.com/pawelzakieta97/visualisation/assets/28107745/e9b26b73-cd9f-4a4b-b5c8-231541489503)
+
 
 ## Installation
 
