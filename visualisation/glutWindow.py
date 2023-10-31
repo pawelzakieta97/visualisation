@@ -77,7 +77,7 @@ class GlutWindow(object):
         oglut.glutInitDisplayMode(oglut.GLUT_RGBA | oglut.GLUT_DOUBLE | oglut.GLUT_DEPTH)
         oglut.glutInitWindowSize(800, 480)
         self.window = oglut.glutCreateWindow(b"200k particles")
-        # oglut.glutDisplayFunc(self.display)
+        oglut.glutDisplayFunc(self.display)
         #oglut.glutIdleFunc(self.display) 
         oglut.glutReshapeFunc(self.resize)
         oglut.glutKeyboardFunc(self.on_keyboard)
