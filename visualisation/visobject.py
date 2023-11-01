@@ -13,7 +13,8 @@ from models.mesh import Mesh
 
 class VisObject(Renderable):
 
-    def __init__(self, mesh: Mesh, material: Material = None):
+    def __init__(self, mesh: Mesh, material: Material = None,
+                 mode_2d=False):
         super().__init__()
         self.indices_buffer = None
         self.normal_buffer = None
@@ -38,8 +39,11 @@ class VisObject(Renderable):
         self.normal_data = mesh.normals.flatten()
         # self.transformation = mesh.transformation.astype(np.float32)
         self.material = material
+        self.mode_2d = mode_2d
 
     def load_shader(self, shader='phong'):
+        if self.mode_2d:
+            shader = '2d'
         self.shader = Shader()
         if self.mesh.color is None:
             self.shader.initShaderFromGLSL(
@@ -59,37 +63,18 @@ class VisObject(Renderable):
 
     def load_vbos(self):
         glBindBuffer(GL_ARRAY_BUFFER, self.vertex_buffer)
-        # glBufferData(GL_ARRAY_BUFFER, len(self.mesh.vertices) * 4,
-        #              (GLfloat * len(self.mesh.vertices))(*(self.mesh.vertices.flatten())),
-        #              GL_STATIC_DRAW)
         glBufferData(GL_ARRAY_BUFFER, self.vertex_data.astype(np.float32), GL_STATIC_DRAW)
-        # glBufferData(GL_ARRAY_BUFFER, self.mesh.vertices.astype(np.float32), GL_STATIC_DRAW)
-
 
         if self.mesh.color is not None:
             glBindBuffer(GL_ARRAY_BUFFER, self.color_buffer)
-            # glBufferData(GL_ARRAY_BUFFER, len(self.mesh.color) * 4,
-            #              (GLfloat * len(self.mesh.color))(*(self.mesh.color.flatten())),
-            #              GL_STATIC_DRAW)
             glBufferData(GL_ARRAY_BUFFER, self.color_data.astype(np.float32), GL_STATIC_DRAW)
-            # glBufferData(GL_ARRAY_BUFFER, self.mesh.color.astype(np.float32), GL_STATIC_DRAW)
-
         else:
             self.color_buffer = None
 
         glBindBuffer(GL_ARRAY_BUFFER, self.normal_buffer)
-        # glBufferData(GL_ARRAY_BUFFER, len(self.mesh.normal) * 4,
-        #              (GLfloat * len(self.mesh.normal))(*(self.mesh.normal.flatten())),
-        #              GL_STATIC_DRAW)
         glBufferData(GL_ARRAY_BUFFER, self.normal_data.astype(np.float32), GL_STATIC_DRAW)
-        # glBufferData(GL_ARRAY_BUFFER, self.mesh.normals.astype(np.float32), GL_STATIC_DRAW)
-
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.indices_buffer)
-        # glBufferData(GL_ELEMENT_ARRAY_BUFFER, len(self.index_data) * 2,
-        #              (GLushort * len(self.index_data))(*(self.index_data.flatten())), GL_STATIC_DRAW)
-        # glBufferData(GL_ELEMENT_ARRAY_BUFFER, self.mesh.triangle_indices.flatten().astype(np.uint16), GL_STATIC_DRAW)
-
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, self.index_data.astype(np.uint16), GL_STATIC_DRAW)
 
     def load_object(self):
