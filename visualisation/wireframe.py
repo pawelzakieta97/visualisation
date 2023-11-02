@@ -37,9 +37,9 @@ class Wireframe(Renderable):
         self.color_buffer = glGenBuffers(1)
         self.load_vbos()
 
-    def render(self, VP, *args, **kwargs):
+    def render(self, projection_matrix, view_matrix, camera_position, lights):
         self.shader.begin()
-        glUniformMatrix4fv(self.MVP_ID, 1, GL_FALSE, VP.T)#glm.value_ptr(VP))
+        glUniformMatrix4fv(self.MVP_ID, 1, GL_FALSE, (projection_matrix @ np.linalg.inv(view_matrix)).T)#glm.value_ptr(VP))
 
         glEnableVertexAttribArray(0)
         glBindBuffer(GL_ARRAY_BUFFER, self.vertex_buffer)

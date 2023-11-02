@@ -54,7 +54,7 @@ class MeshViewWindow(GlutWindow):
         self.update_projection_matrix()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         for mesh in self.vis_objects:
-            mesh.render(self.projection_matrix, self.controller.pos, None)
+            mesh.render(self.controller.projection_matrix, self.controller.view_matrix, self.controller.pos, None)
             
     def processMenuEvents(self, *args, **kwargs):
         action, = args

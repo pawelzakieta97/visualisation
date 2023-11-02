@@ -26,6 +26,7 @@ void main(){
 	position_worldspace = vec3(objectTransformation * vec4(vertexPosition_modelspace, 1));
 	normal_worldspace = mat3(objectTransformation) * vertexNormal_modelspace;
 	gl_Position =  MVP * vec4(position_worldspace,1);
+//	gl_Position = vec4(position_worldspace ,1);
 
 
 }

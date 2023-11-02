@@ -19,6 +19,6 @@ class Renderable(object):
     def load_object(self):
         print("Make and fill OPENGL buffers,vertex,uv,normal,trangent,indices")
 
-    def render(self, VP, camera_position, lights):
+    def render(self, projection_matrix, view_matrix, camera_position, light):
         print("override rendering process")
         pass

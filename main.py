@@ -16,5 +16,5 @@ if __name__ == "__main__":
         spheres = MultiMesh(sphere, count=4000)
         positions = np.random.random((4000, 3)) * 15 - 8
         spheres.set_positions(positions)
-        win.add_object(VisObject(c))
+        win.add_object(VisObject(c, mode_2d=True))
     win.run()
