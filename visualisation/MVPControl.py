@@ -12,6 +12,7 @@ class MVPControl:
         self.ScreenWidth = width
         self.ScreenHeight = height
         self.pos = np.array([5, 5, 5]).astype(float)
+        self.pos = np.array([0, 0, 0]).astype(float)
         self.speed = 10.0
         self.fov = 60
         self.yaw = 0

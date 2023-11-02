@@ -91,10 +91,13 @@ class VisObject(Renderable):
             self.load_vbos()
             self.mesh.changed = False
         self.shader.begin()
-        if self.mode_2d:
+        if not self.mode_2d:
             glUniformMatrix4fv(self.MVP_ID, 1, GL_FALSE, (projection_matrix @ np.linalg.inv(view_matrix)).T)
         else:
-            glUniformMatrix4fv(self.MVP_ID, 1, GL_FALSE, (projection_matrix @ np.linalg.inv(view_matrix)).T)
+            pm = projection_matrix# + get_translation_matrix(dx=camera_position[0], dy=camera_position[1])
+            pm[3,2] = 0
+            pm[3, 3] = 2
+            glUniformMatrix4fv(self.MVP_ID, 1, GL_FALSE, pm.T)
         # camera_position = np.array(camera_position)
         glUniform3fv(self.camera_pos_id, 1, camera_position)
         glUniform3fv(self.object_diffuse_id, 1, self.material.diffuse)
