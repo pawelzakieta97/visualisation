@@ -42,8 +42,8 @@ class VisObject(Renderable):
         self.mode_2d = mode_2d
 
     def load_shader(self, shader='phong'):
-        # if self.mode_2d:
-        #     shader = '2d'
+        if self.mode_2d:
+            shader = '2d'
         self.shader = Shader()
         if self.mesh.color is None:
             self.shader.initShaderFromGLSL(
@@ -94,10 +94,12 @@ class VisObject(Renderable):
         if not self.mode_2d:
             glUniformMatrix4fv(self.MVP_ID, 1, GL_FALSE, (projection_matrix @ np.linalg.inv(view_matrix)).T)
         else:
-            pm = projection_matrix# + get_translation_matrix(dx=camera_position[0], dy=camera_position[1])
-            pm[3,2] = 0
-            pm[3, 3] = 2
-            glUniformMatrix4fv(self.MVP_ID, 1, GL_FALSE, pm.T)
+            pm = projection_matrix.copy()# + get_translation_matrix(dx=camera_position[0], dy=camera_position[1])
+            pm[3, 2] = 0
+            pm[3, 3] = 1
+            pm[[0,1], [0, 1]] /= pm[1,1]
+            glUniformMatrix4fv(self.MVP_ID, 1, GL_FALSE,
+                               (pm @ get_translation_matrix(dx=-camera_position[0], dy=-camera_position[1])).T)
         # camera_position = np.array(camera_position)
         glUniform3fv(self.camera_pos_id, 1, camera_position)
         glUniform3fv(self.object_diffuse_id, 1, self.material.diffuse)
