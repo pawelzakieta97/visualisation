@@ -9,12 +9,6 @@ from visualisation.glutWindow import GlutWindow
 from visualisation.light import Light
 from visualisation.renderable import Renderable
 from visualisation.renderable_factory import get_renderable
-from visualisation.wireframe import Wireframe
-
-
-# from glutWindow import GlutWindow
-# from MVPControl import MVPController
-# from utils.shaderLoader import Shader
 
 
 class MeshViewWindow(GlutWindow):
@@ -26,19 +20,18 @@ class MeshViewWindow(GlutWindow):
         self.vis_objects = []
         self.light = light
         self.controller = MVPController(self.update_if)
-        self.init_opengl()
-        self.init_context()
         if add_floorgrid:
             floor_model = FloorGrid()
             self.add_object(floor_model)
+
+    def init_opengl(self):
+        super().init_opengl()
         self.menu = glutCreateMenu(self.processMenuEvents)
         glutAddMenuEntry("UV MAP", 1)
         glutAddMenuEntry("WireFrame Mode", 2)
         glutAddMenuEntry("GL_FILL Mode", 4)
         glutAddMenuEntry("Reset View", 3)
         glutAttachMenu(GLUT_RIGHT_BUTTON)
-
-    def init_opengl(self):
         self.print_gpu_info()
         glClearColor(0.1, 0.1, 0.1, 0.8)
         glDepthFunc(GL_LESS)
@@ -49,9 +42,6 @@ class MeshViewWindow(GlutWindow):
         if not isinstance(model, Renderable):
             model = get_renderable(model)
         self.vis_objects.append(model.makeContext())
-
-    def init_context(self):        
-        self.vis_objects = []
 
     def update_projection_matrix(self, width=0, height=0):
         

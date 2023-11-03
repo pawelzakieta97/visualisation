@@ -12,10 +12,21 @@ class GlutWindow(object):
         print(gl.glGetString(gl.GL_VENDOR))
 
     def init_opengl(self):
+        oglut.glutInit(sys.argv)
+        self.window = oglut.glutCreateWindow(self.window_name)
+        oglut.glutInitDisplayMode(oglut.GLUT_RGBA | oglut.GLUT_DOUBLE | oglut.GLUT_DEPTH)
+        oglut.glutInitWindowSize(self.width, self.height)
         self.print_gpu_info()
         gl.glClearColor(0.0,0,0.4,0)
         gl.glDepthFunc(gl.GL_LESS)
         gl.glEnable(gl.GL_DEPTH_TEST)
+        oglut.glutDisplayFunc(self.display)
+        oglut.glutReshapeFunc(self.resize)
+        oglut.glutKeyboardFunc(self.on_keyboard)
+        oglut.glutKeyboardUpFunc(self.on_keyup)
+        oglut.glutSpecialFunc(self.on_special_key)
+        oglut.glutMouseFunc(self.on_mouse)
+        oglut.glutMotionFunc(self.on_mousemove)
         
     def ogl_draw(self):
         gl.glPolygonMode(gl.GL_FRONT_AND_BACK, gl.GL_LINE)
@@ -73,19 +84,10 @@ class GlutWindow(object):
             self.keyboard_state.remove(key)
 
     def __init__(self, width=800, height=480, window_name='window', *args, **kwargs):
-        oglut.glutInit(sys.argv)
-        oglut.glutInitDisplayMode(oglut.GLUT_RGBA | oglut.GLUT_DOUBLE | oglut.GLUT_DEPTH)
-        oglut.glutInitWindowSize(width, height)
+        self.window = None
+        self.width = width
+        self.height = height
         self.window_name = window_name
-        self.window = oglut.glutCreateWindow(self.window_name)
-        oglut.glutDisplayFunc(self.display)
-        #oglut.glutIdleFunc(self.display) 
-        oglut.glutReshapeFunc(self.resize)
-        oglut.glutKeyboardFunc(self.on_keyboard)
-        oglut.glutKeyboardUpFunc(self.on_keyup)
-        oglut.glutSpecialFunc(self.on_special_key)  
-        oglut.glutMouseFunc(self.on_mouse)
-        oglut.glutMotionFunc(self.on_mousemove)
         self.controller = None
         self.update_if = None #oglut.glutPostRedisplay
         self.keyboard_state = []
