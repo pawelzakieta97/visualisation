@@ -18,13 +18,25 @@ from visualisation.wireframe import Wireframe
 
 
 class MeshViewWindow(GlutWindow):
-    def __init__(self, light: Light = None, *args, **kwargs):
+    def __init__(self, light: Light = None, add_floorgrid=False, *args, **kwargs):
 
         super().__init__(*args, **kwargs)
         self.projection_matrix = None
         self.menu = None
         self.vis_objects = []
         self.light = light
+        self.controller = MVPController(self.update_if)
+        self.init_opengl()
+        self.init_context()
+        if add_floorgrid:
+            floor_model = FloorGrid()
+            self.add_object(floor_model)
+        self.menu = glutCreateMenu(self.processMenuEvents)
+        glutAddMenuEntry("UV MAP", 1)
+        glutAddMenuEntry("WireFrame Mode", 2)
+        glutAddMenuEntry("GL_FILL Mode", 4)
+        glutAddMenuEntry("Reset View", 3)
+        glutAttachMenu(GLUT_RIGHT_BUTTON)
 
     def init_opengl(self):
         self.print_gpu_info()
@@ -72,18 +84,3 @@ class MeshViewWindow(GlutWindow):
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)    
             self.update_if()        
         return 0
-
-    def init_default(self):
-        self.controller = MVPController(self.update_if)
-        self.init_opengl()
-        self.init_context()
-        floor_model = FloorGrid()
-        self.add_object(floor_model)
-        self.menu = glutCreateMenu(self.processMenuEvents)
-        glutAddMenuEntry("UV MAP", 1)
-        glutAddMenuEntry("WireFrame Mode", 2)
-        glutAddMenuEntry("GL_FILL Mode", 4)
-        glutAddMenuEntry("Reset View", 3)
-        glutAttachMenu(GLUT_RIGHT_BUTTON)
-        return self
-

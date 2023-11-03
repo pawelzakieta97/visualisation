@@ -10,9 +10,9 @@ from visualisation.meshViewer import MeshViewWindow
 
 
 if __name__ == "__main__":
-    ps = ParticleSystem()
+    ps = ParticleSystem(particle_count=1, reference_mesh=Circle(radius=0.3))
     ps_vis = get_renderable(ps, mode_2d=True)
-    win = MeshViewWindow().init_default()
+    win = MeshViewWindow()
     for i in range(5):
         win.add_object(ps_vis)
     win.run()

@@ -72,11 +72,12 @@ class GlutWindow(object):
         if key in self.keyboard_state:
             self.keyboard_state.remove(key)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, width=800, height=480, window_name='window', *args, **kwargs):
         oglut.glutInit(sys.argv)
         oglut.glutInitDisplayMode(oglut.GLUT_RGBA | oglut.GLUT_DOUBLE | oglut.GLUT_DEPTH)
-        oglut.glutInitWindowSize(800, 480)
-        self.window = oglut.glutCreateWindow(b"200k particles")
+        oglut.glutInitWindowSize(width, height)
+        self.window_name = window_name
+        self.window = oglut.glutCreateWindow(self.window_name)
         oglut.glutDisplayFunc(self.display)
         #oglut.glutIdleFunc(self.display) 
         oglut.glutReshapeFunc(self.resize)
@@ -105,7 +106,7 @@ class GlutWindow(object):
             passedTime = currentTime - self.last_fps_update
             self.last_fps_update = currentTime
             fps = math.floor(numFpsFrames / passedTime)
-            oglut.glutSetWindowTitle("200k particles " + str(fps) + " fps")
+            oglut.glutSetWindowTitle(self.window_name + ' ' + str(fps) + " fps")
         self.display()
         render_time = (time.perf_counter() - currentTime) * 1000
         oglut.glutTimerFunc(max(0, math.floor((1000.0 / self.target_fps) - render_time)), self.timerCallback, 0)

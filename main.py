@@ -10,7 +10,7 @@ from visualisation.meshViewer import MeshViewWindow
 if __name__ == "__main__":
     sphere = Sphere(radius=0.05, vert_count=14)
     c = Circle(radius=1)
-    win = MeshViewWindow().init_default()
+    win = MeshViewWindow(add_floorgrid=True)
     for i in range(5):
         # sphere = Sphere(radius=0.1, vert_count=500)
         spheres = MultiMesh(sphere, count=4000)
