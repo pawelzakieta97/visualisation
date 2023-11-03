@@ -7,7 +7,6 @@ from visualisation.visobject import VisObject
 from visualisation.meshViewer import MeshViewWindow
 
 
-
 if __name__ == "__main__":
     sphere = Sphere(radius=0.05, vert_count=14)
     c = Circle(radius=1)
@@ -21,10 +20,6 @@ if __name__ == "__main__":
     # win.run()
     import threading
     import time
-    def vis():
-        win.init_opengl()
-        win.run()
-    vis()
-    threading.Thread(target=vis).start()
+    win.start()
     print('code continues')
     # win.run()

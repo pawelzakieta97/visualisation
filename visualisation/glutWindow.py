@@ -1,4 +1,5 @@
 import math
+import threading
 import time
 
 import OpenGL.GLUT as oglut
@@ -6,16 +7,31 @@ import sys
 import OpenGL.GL as gl
 import OpenGL.GLU as glu
 
-class GlutWindow(object):
 
+class GlutWindow(threading.Thread):
+
+    def __init__(self, width=800, height=480, window_name='window', *args,
+                 **kwargs):
+        super().__init__()
+        self.window = None
+        self.width = width
+        self.height = height
+        self.window_name = window_name
+        self.controller = None
+        self.update_if = None #oglut.glutPostRedisplay
+        self.keyboard_state = []
+        self.frame_number = 0
+        self.last_fps_update = time.perf_counter()
+        self.target_fps = 60
     def print_gpu_info(self):
         print(gl.glGetString(gl.GL_VENDOR))
 
     def init_opengl(self):
         oglut.glutInit(sys.argv)
+        oglut.glutInitWindowSize(self.width, self.height)
         self.window = oglut.glutCreateWindow(self.window_name)
         oglut.glutInitDisplayMode(oglut.GLUT_RGBA | oglut.GLUT_DOUBLE | oglut.GLUT_DEPTH)
-        oglut.glutInitWindowSize(self.width, self.height)
+        print(self.width)
         self.print_gpu_info()
         gl.glClearColor(0.0,0,0.4,0)
         gl.glDepthFunc(gl.GL_LESS)
@@ -82,18 +98,6 @@ class GlutWindow(object):
         key = key.decode()
         if key in self.keyboard_state:
             self.keyboard_state.remove(key)
-
-    def __init__(self, width=800, height=480, window_name='window', *args, **kwargs):
-        self.window = None
-        self.width = width
-        self.height = height
-        self.window_name = window_name
-        self.controller = None
-        self.update_if = None #oglut.glutPostRedisplay
-        self.keyboard_state = []
-        self.frame_number = 0
-        self.last_fps_update = time.perf_counter()
-        self.target_fps = 60
 
     def run(self):
         self.timerCallback()

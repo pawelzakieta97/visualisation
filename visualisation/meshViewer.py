@@ -1,3 +1,4 @@
+import threading
 from typing import Any, Union
 
 from OpenGL.GL import *  # pylint: disable=W0614
@@ -12,14 +13,16 @@ from visualisation.renderable_factory import get_renderable
 
 
 class MeshViewWindow(GlutWindow):
-    def __init__(self, light: Light = None, add_floorgrid=False, *args, **kwargs):
+    def __init__(self, light: Light = None, add_floorgrid=False,
+                 *args, **kwargs):
 
         super().__init__(*args, **kwargs)
+
         self.projection_matrix = None
         self.menu = None
         self.vis_objects = []
         self.light = light
-        self.controller = MVPController(self.update_if)
+        self.controller = MVPController(lambda x: None)
         if add_floorgrid:
             floor_model = FloorGrid()
             self.add_object(floor_model)
@@ -32,7 +35,6 @@ class MeshViewWindow(GlutWindow):
         glutAddMenuEntry("GL_FILL Mode", 4)
         glutAddMenuEntry("Reset View", 3)
         glutAttachMenu(GLUT_RIGHT_BUTTON)
-        self.print_gpu_info()
         glClearColor(0.1, 0.1, 0.1, 0.8)
         glDepthFunc(GL_LESS)
         glEnable(GL_DEPTH_TEST)
@@ -41,7 +43,7 @@ class MeshViewWindow(GlutWindow):
     def add_object(self, model: Union[Renderable, Any]):
         if not isinstance(model, Renderable):
             model = get_renderable(model)
-        self.vis_objects.append(model.makeContext())
+        self.vis_objects.append(model)
 
     def update_projection_matrix(self, width=0, height=0):
         
@@ -74,3 +76,9 @@ class MeshViewWindow(GlutWindow):
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)    
             self.update_if()        
         return 0
+
+    def run(self):
+        self.init_opengl()
+        for obj in self.vis_objects:
+            obj.makeContext()
+        super().run()
