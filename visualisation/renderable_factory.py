@@ -6,11 +6,11 @@ from visualisation.wireframe import Wireframe
 from models.wireframe import Wireframe as WireframeModel
 
 
-def get_renderable(model) -> Renderable:
+def get_renderable(model, *args, **kwargs) -> Renderable:
     if isinstance(model, Mesh):
-        return VisObject(model)
+        return VisObject(model, *args, **kwargs)
     if isinstance(model, WireframeModel):
-        return Wireframe(model)
+        return Wireframe(model, *args, **kwargs)
     if isinstance(model, CompoundMesh):
-        return CompoundRenderable([get_renderable(m) for m in model.get_meshes()])
+        return CompoundRenderable([get_renderable(m, *args, **kwargs) for m in model.get_meshes()])
     raise ValueError(f'model type {type(model)} not supported')
