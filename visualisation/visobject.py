@@ -47,10 +47,11 @@ class VisObject(Renderable):
         self.shader = Shader()
         if self.mesh.color is None:
             self.shader.initShaderFromGLSL(
-                [f"visualisation/glsl/{shader}/vertex.glsl"], [f"visualisation/glsl/{shader}/fragment.glsl"])
+                [f"{self.SHADER_DIRECTORY}/{shader}/vertex.glsl"],
+                [f"{self.SHADER_DIRECTORY}/{shader}/fragment.glsl"])
         else:
             self.shader.initShaderFromGLSL(
-                [f"visualisation/glsl/{shader}/vertex_vc.glsl"], [f"visualisation/glsl/{shader}/fragment_vc.glsl"])
+                [f"{self.SHADER_DIRECTORY}/{shader}/vertex_vc.glsl"], [f"{self.SHADER_DIRECTORY}/{shader}/fragment_vc.glsl"])
         self.MVP_ID = glGetUniformLocation(self.shader.program, "MVP")
         self.camera_transformation_id = glGetUniformLocation(self.shader.program, "cameraTransformation")
         self.camera_pos_id = glGetUniformLocation(self.shader.program, "cameraPosition")

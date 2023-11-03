@@ -1,8 +1,11 @@
+import os
+from typing import Sequence
+
 from visualisation.shader import Shader
 
 
 class Renderable(object):
-    SHADER_DIRECTORY = 'visualisation/glsl'
+    SHADER_DIRECTORY = os.path.join(os.path.dirname(__file__), 'glsl')
 
     def __init__(self):
         self.shader = None
@@ -22,3 +25,26 @@ class Renderable(object):
     def render(self, projection_matrix, view_matrix, camera_position, light):
         print("override rendering process")
         pass
+
+
+class CompoundRenderable(Renderable):
+    def __init__(self, objects: Sequence[Renderable]):
+        super().__init__()
+        self.objects = objects
+
+    def render(self, projection_matrix, view_matrix, camera_position, light):
+        for obj in self.objects:
+            obj.render(projection_matrix, view_matrix, camera_position, light)
+
+    def load_shader(self):
+        for obj in self.objects:
+            obj.load_shader()
+
+    def load_object(self):
+        for obj in self.objects:
+            obj.load_object()
+
+    def makeContext(self):
+        for obj in self.objects:
+            obj.makeContext()
+        return self

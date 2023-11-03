@@ -1,4 +1,4 @@
-
+from typing import Any, Union
 
 from OpenGL.GL import *  # pylint: disable=W0614
 from OpenGL.GLUT import *  # pylint: disable=W0614
@@ -8,6 +8,7 @@ from models.floorgrid import FloorGrid
 from visualisation.glutWindow import GlutWindow
 from visualisation.light import Light
 from visualisation.renderable import Renderable
+from visualisation.renderable_factory import get_renderable
 from visualisation.wireframe import Wireframe
 
 
@@ -32,8 +33,10 @@ class MeshViewWindow(GlutWindow):
         glEnable(GL_DEPTH_TEST)
         #glEnable(GL_CULL_FACE)
 
-    def add_object(self, vis_object: Renderable):
-        self.vis_objects.append(vis_object.makeContext())
+    def add_object(self, model: Union[Renderable, Any]):
+        if not isinstance(model, Renderable):
+            model = get_renderable(model)
+        self.vis_objects.append(model.makeContext())
 
     def init_context(self):        
         self.vis_objects = []
@@ -75,7 +78,7 @@ class MeshViewWindow(GlutWindow):
         self.init_opengl()
         self.init_context()
         floor_model = FloorGrid()
-        self.add_object(Wireframe(floor_model))
+        self.add_object(floor_model)
         self.menu = glutCreateMenu(self.processMenuEvents)
         glutAddMenuEntry("UV MAP", 1)
         glutAddMenuEntry("WireFrame Mode", 2)
