@@ -53,7 +53,8 @@ def look_at(position: np.array, target: np.array = None, yaw: float = None,
     transformation[:-1, 3] = position
     return transformation
 
-def get_projection_matrix(fov, aspect_ratio, near=0.1, far=1000):
+
+def get_perspective_projection_matrix(fov, aspect_ratio, near=0.1, far=1000):
     projection_matrix = np.zeros((4,4))
     S = 1 / np.tan(fov/2)
     projection_matrix[1, 1] = S
@@ -64,7 +65,15 @@ def get_projection_matrix(fov, aspect_ratio, near=0.1, far=1000):
     return projection_matrix
 
 
+def get_orthographic_projection_matrix(scale, aspect_ratio, near=0.1, far=1000):
+    orthogonal_matrix = np.zeros((4,4))
+    orthogonal_matrix[1, 1] = scale * far
+    orthogonal_matrix[0, 0] = scale / aspect_ratio * far
+    orthogonal_matrix[2, 2] = - 1
+    orthogonal_matrix[3, 3] = far
+    return orthogonal_matrix
+
 
 if __name__ == '__main__':
-    trans = look_at([0, 0, 0], [1, 0, 1])
+    trans = get_orthographic_projection_matrix(200, 1.6)
     pass

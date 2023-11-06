@@ -23,6 +23,7 @@ class GlutWindow(threading.Thread):
         self.frame_number = 0
         self.last_fps_update = time.perf_counter()
         self.target_fps = 60
+
     def print_gpu_info(self):
         print(gl.glGetString(gl.GL_VENDOR))
 

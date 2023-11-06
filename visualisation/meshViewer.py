@@ -4,6 +4,7 @@ from typing import Any, Union
 from OpenGL.GL import *  # pylint: disable=W0614
 from OpenGL.GLUT import *  # pylint: disable=W0614
 
+from transformations import get_orthographic_projection_matrix
 from visualisation.MVPControl import MVPController
 from models.floorgrid import FloorGrid
 from visualisation.glutWindow import GlutWindow
@@ -13,7 +14,7 @@ from visualisation.renderable_factory import get_renderable
 
 
 class MeshViewWindow(GlutWindow):
-    def __init__(self, light: Light = None, add_floorgrid=False,
+    def __init__(self, light: Light = None, add_floorgrid=False, orthographic=False,
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
@@ -22,7 +23,7 @@ class MeshViewWindow(GlutWindow):
         self.menu = None
         self.vis_objects = []
         self.light = light
-        self.controller = MVPController(lambda x: None)
+        self.controller = MVPController(orthographic=orthographic)
         if add_floorgrid:
             floor_model = FloorGrid()
             self.add_object(floor_model)
@@ -34,6 +35,8 @@ class MeshViewWindow(GlutWindow):
         glutAddMenuEntry("WireFrame Mode", 2)
         glutAddMenuEntry("GL_FILL Mode", 4)
         glutAddMenuEntry("Reset View", 3)
+        glutAddMenuEntry("Perspective", 5)
+        glutAddMenuEntry("Orthographic", 6)
         glutAttachMenu(GLUT_RIGHT_BUTTON)
         glClearColor(0.1, 0.1, 0.1, 0.8)
         glDepthFunc(GL_LESS)
@@ -50,7 +53,7 @@ class MeshViewWindow(GlutWindow):
         if width != 0:
             self.controller.resize(width, height)
         # self.projection_matrix = glm.mat4x4(self.controller.get_VP())
-        self.projection_matrix = self.controller.get_VP()
+        # self.projection_matrix = self.controller.get_VP()
 
     def resize(self, width, height):  
         print("resize")
@@ -61,20 +64,24 @@ class MeshViewWindow(GlutWindow):
         self.update_projection_matrix()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         for mesh in self.vis_objects:
-            mesh.render(self.controller.projection_matrix, self.controller.view_matrix, self.controller.pos, None)
+            pm = self.controller.get_projection_matrix()
+            mesh.render(pm, self.controller.get_view_matrix(), self.controller.get_pos(), None)
+            pass
+            # mesh.render(self.controller.projection_matrix, self.controller.view_matrix, self.controller.pos, None)
             
     def processMenuEvents(self, *args, **kwargs):
         action, = args
 
         if action == 3:
             self.controller.reset()
-            self.update_if() 
         if action == 2:
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-            self.update_if()
         if action == 4:
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)    
-            self.update_if()        
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+        if action == 5:
+            self.controller.orthographic = False
+        if action == 6:
+            self.controller.orthographic = True
         return 0
 
     def run(self):
