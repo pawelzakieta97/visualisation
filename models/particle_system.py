@@ -32,17 +32,26 @@ class ParticleSystem(CompoundMesh):
 
     def get_reference_mesh(self):
         if self.reference_mesh is None:
-            self.reference_mesh = Sphere(radius=1/(self.particle_count**0.5)/10, vert_count=14)
+            self.reference_mesh = Sphere(radius=1/(self.particle_count**0.5)/5, vert_count=14)
         return self.reference_mesh
 
     def update_meshes(self):
         if self.particles_mesh is None:
             self.particles_mesh = MultiMesh(self.get_reference_mesh(), count=self.particle_count)
         self.particles_mesh.set_positions(self.particles)
-        if self.links_mesh is None and self.links:
+        if self.links_mesh is None and self.links.shape[0] != 0:
             lines = self.particles[self.links].reshape(-1, 3)
             self.links_mesh = Wireframe(lines, colors=np.ones_like(lines) * 0.8)
 
     def get_meshes(self) -> Iterable[Mesh]:
         meshes = [self.particles_mesh, self.links_mesh]
         return [m for m in meshes if m is not None]
+
+    def add_links(self, links: np.array):
+        links = np.array(links)
+        if np.ndim(links) == 1:
+            links = links[None, :]
+        if not self.links:
+            self.links = links
+            return
+        self.links = np.vstack((self.links, links))

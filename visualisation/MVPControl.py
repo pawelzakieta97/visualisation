@@ -71,7 +71,7 @@ class MVPControl:
 
     def get_view_matrix(self):
         if self.orthographic:
-            return look_at(position=self.get_forward_direction() * (-1000), target=self.pos)
+            return look_at(position=self.pos + self.get_forward_direction() * (-1000), target=self.pos)
         return look_at(position=self.pos, yaw=self.yaw, pitch=self.pitch)
 
     def get_pos(self):
@@ -92,24 +92,27 @@ class MVPController(MVPControl):
     def on_keyboard(self, keyboard_state, dt):
         if not keyboard_state:
             return
+        speed = self.speed
+        if self.orthographic:
+            speed /= self.zoom * 3
         if 'w' in keyboard_state:
             if self.orthographic:
-                self.move_up(self.speed * dt)
+                self.move_up(speed * dt)
             else:
-                self.move_forward(self.speed * dt)
+                self.move_forward(speed * dt)
         if 's' in keyboard_state:
             if self.orthographic:
-                self.move_up(-self.speed * dt)
+                self.move_up(-speed * dt)
             else:
-                self.move_forward(-self.speed * dt)
+                self.move_forward(-speed * dt)
         if 'a' in keyboard_state:
-            self.move_right(-self.speed * dt)
+            self.move_right(-speed * dt)
         if 'd' in keyboard_state:
-            self.move_right(self.speed * dt)
+            self.move_right(speed * dt)
         if 'q' in keyboard_state:
-            self.move_up(-self.speed * dt)
+            self.move_up(-speed * dt)
         if 'e' in keyboard_state:
-            self.move_up(self.speed * dt)
+            self.move_up(speed * dt)
 
     def on_mouse(self, *args, **kwargs):
         (key, Up, x, y) = args
