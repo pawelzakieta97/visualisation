@@ -10,9 +10,11 @@ from visualisation.meshViewer import MeshViewWindow
 
 
 if __name__ == "__main__":
-    ps = ParticleSystem(particle_count=1, reference_mesh=Circle(radius=0.3))
-    ps_vis = get_renderable(ps, mode_2d=True)
-    win = MeshViewWindow()
+    ps = ParticleSystem(particle_count=100, reference_mesh=Circle(radius=0.03))
+    ps_vis = get_renderable(ps)
+    ps_vis.objects[0].material.diffuse = np.ones(3)
+    ps_vis.objects[0].shader_name = 'lines'
+    win = MeshViewWindow(add_floorgrid=True)
     for i in range(5):
         win.add_object(ps_vis)
     win.run()

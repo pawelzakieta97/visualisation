@@ -1,14 +1,16 @@
 import os
 from typing import Sequence
 
+from visualisation.material import Material
 from visualisation.shader import Shader
 
 
 class Renderable(object):
     SHADER_DIRECTORY = os.path.join(os.path.dirname(__file__), 'glsl')
 
-    def __init__(self):
+    def __init__(self, material: Material = None):
         self.shader = None
+        self.material = material
 
     def makeContext(self):
         self.load_shader()

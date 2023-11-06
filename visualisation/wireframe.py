@@ -17,8 +17,8 @@ class Wireframe(Renderable):
 
     def load_shader(self):
         self.shader = Shader()
-        self.shader.initShaderFromGLSL([f"{self.SHADER_DIRECTORY}/lines/vertex.glsl"],
-                                       [f"{self.SHADER_DIRECTORY}/lines/fragment.glsl"])
+        self.shader.initShaderFromGLSL([f"{self.SHADER_DIRECTORY}/lines/vertex_vc.glsl"],
+                                       [f"{self.SHADER_DIRECTORY}/lines/fragment_vc.glsl"])
         self.MVP_ID = glGetUniformLocation(self.shader.program, "MVP")
 
     def load_vbos(self):

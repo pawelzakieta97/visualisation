@@ -13,14 +13,14 @@ from models.mesh import Mesh
 
 class VisObject(Renderable):
 
-    def __init__(self, mesh: Mesh, material: Material = None):
-        super().__init__()
+    def __init__(self, mesh: Mesh, material: Material = None, shader_name='phong'):
+        if material is None:
+            material = Material()
+        super().__init__(material=material)
         self.indices_buffer = None
         self.normal_buffer = None
         self.vertex_buffer = None
         self.color_buffer = None
-        if material is None:
-            material = Material()
         self.light_color_id = None
         self.light_pos_id = None
         self.object_glossiness_id = None
@@ -31,6 +31,7 @@ class VisObject(Renderable):
         self.object_transformation_id = None
         self.camera_transformation_id = None
         self.shader = None
+        self.shader_name = shader_name
         self.mesh = mesh
         self.vertex_data = mesh.vertices.flatten()
         self.color_data = mesh.color.flatten() if mesh.color is not None else None
@@ -39,15 +40,16 @@ class VisObject(Renderable):
         # self.transformation = mesh.transformation.astype(np.float32)
         self.material = material
 
-    def load_shader(self, shader='phong'):
+    def load_shader(self):
         self.shader = Shader()
         if self.mesh.color is None:
             self.shader.initShaderFromGLSL(
-                [f"{self.SHADER_DIRECTORY}/{shader}/vertex.glsl"],
-                [f"{self.SHADER_DIRECTORY}/{shader}/fragment.glsl"])
+                [f"{self.SHADER_DIRECTORY}/{self.shader_name}/vertex.glsl"],
+                [f"{self.SHADER_DIRECTORY}/{self.shader_name}/fragment.glsl"])
         else:
             self.shader.initShaderFromGLSL(
-                [f"{self.SHADER_DIRECTORY}/{shader}/vertex_vc.glsl"], [f"{self.SHADER_DIRECTORY}/{shader}/fragment_vc.glsl"])
+                [f"{self.SHADER_DIRECTORY}/{self.shader_name}/vertex_vc.glsl"],
+                [f"{self.SHADER_DIRECTORY}/{self.shader_name}/fragment_vc.glsl"])
         self.MVP_ID = glGetUniformLocation(self.shader.program, "MVP")
         self.camera_transformation_id = glGetUniformLocation(self.shader.program, "cameraTransformation")
         self.camera_pos_id = glGetUniformLocation(self.shader.program, "cameraPosition")
@@ -83,7 +85,7 @@ class VisObject(Renderable):
 
     def render(self, projection_matrix, view_matrix, camera_position, light):
         if light is None or not light:
-            light = Light(position=np.array([-5, 10, -7]), color=np.array([0.6, 0.6, 0.5]))
+            light = Light(position=np.array([-5, 10, -7]), color=np.array([1, 1, 1]))
         if self.mesh.changed:
             self.load_vbos()
             self.mesh.changed = False

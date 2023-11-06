@@ -65,7 +65,7 @@ class MeshViewWindow(GlutWindow):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         for mesh in self.vis_objects:
             pm = self.controller.get_projection_matrix()
-            mesh.render(pm, self.controller.get_view_matrix(), self.controller.get_pos(), None)
+            mesh.render(pm, self.controller.get_view_matrix(), self.controller.get_pos(), self.light)
             pass
             # mesh.render(self.controller.projection_matrix, self.controller.view_matrix, self.controller.pos, None)
             
