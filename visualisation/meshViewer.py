@@ -73,7 +73,7 @@ class MeshViewWindow(GlutWindow):
         action, = args
 
         if action == 3:
-            self.controller.reset()
+            self.controller.reset_view()
         if action == 2:
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
         if action == 4:

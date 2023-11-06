@@ -18,6 +18,14 @@ class MVPControl:
         self.yaw = 0
         self.pitch = 0
         self.orthographic = orthographic
+        self.zoom = 1
+
+    def reset_view(self):
+        self.pos = np.array([0, 0, 5]).astype(float)
+        self.fov = 60
+        self.zoom = 1
+        self.yaw = 0
+        self.pitch = 0
 
     def get_up_direction(self):
         return np.array([np.sin(self.yaw) * np.sin(self.pitch),
@@ -35,7 +43,8 @@ class MVPControl:
                          -np.sin(self.yaw)])
 
     def move_forward(self, distance):
-        self.pos += self.get_forward_direction() * distance
+        if not self.orthographic:
+            self.pos += self.get_forward_direction() * distance
 
     def move_up(self, distance):
         self.pos += self.get_up_direction() * distance
@@ -56,13 +65,13 @@ class MVPControl:
     def get_projection_matrix(self):
         aspect_ratio = self.ScreenWidth / self.ScreenHeight
         if self.orthographic:
-            distance = self.get_forward_direction() @ (-self.pos)
-            scale = 0.85 ** distance
-            return get_orthographic_projection_matrix(scale, aspect_ratio)
+            return get_orthographic_projection_matrix(self.zoom, aspect_ratio, far=10000)
         else:
-            return get_perspective_projection_matrix(self.fov * np.pi / 180, aspect_ratio=aspect_ratio)
+            return get_perspective_projection_matrix(self.fov * np.pi / 180, aspect_ratio=aspect_ratio, zoom=self.zoom)
 
     def get_view_matrix(self):
+        if self.orthographic:
+            return look_at(position=self.get_forward_direction() * (-1000), target=self.pos)
         return look_at(position=self.pos, yaw=self.yaw, pitch=self.pitch)
 
     def get_pos(self):
@@ -84,9 +93,15 @@ class MVPController(MVPControl):
         if not keyboard_state:
             return
         if 'w' in keyboard_state:
-            self.move_forward(self.speed * dt)
+            if self.orthographic:
+                self.move_up(self.speed * dt)
+            else:
+                self.move_forward(self.speed * dt)
         if 's' in keyboard_state:
-            self.move_forward(-self.speed * dt)
+            if self.orthographic:
+                self.move_up(-self.speed * dt)
+            else:
+                self.move_forward(-self.speed * dt)
         if 'a' in keyboard_state:
             self.move_right(-self.speed * dt)
         if 'd' in keyboard_state:
@@ -106,7 +121,10 @@ class MVPController(MVPControl):
             self.lastX = x
             self.lastY = y
             self.mouse_mode = 2
-
+        elif key == 3:
+            self.zoom *= 1.1
+        elif key == 4:
+            self.zoom /= 1.1
         else:
             self.lastX = -1
             self.lastY = -1

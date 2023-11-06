@@ -54,9 +54,9 @@ def look_at(position: np.array, target: np.array = None, yaw: float = None,
     return transformation
 
 
-def get_perspective_projection_matrix(fov, aspect_ratio, near=0.1, far=1000):
+def get_perspective_projection_matrix(fov, aspect_ratio, near=0.1, far=1000, zoom=1):
     projection_matrix = np.zeros((4,4))
-    S = 1 / np.tan(fov/2)
+    S = 1 / np.tan(fov/2) * zoom
     projection_matrix[1, 1] = S
     projection_matrix[0, 0] = S / aspect_ratio
     projection_matrix[2, 2] = - (far+near) / (far - near)
