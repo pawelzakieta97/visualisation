@@ -61,20 +61,21 @@ class VisObject(Renderable):
         self.light_color_id = glGetUniformLocation(self.shader.program, "lightColor")
 
     def load_vbos(self):
+        print('loading_vbos')
         glBindBuffer(GL_ARRAY_BUFFER, self.vertex_buffer)
-        glBufferData(GL_ARRAY_BUFFER, self.vertex_data.astype(np.float32), GL_STATIC_DRAW)
+        glBufferData(GL_ARRAY_BUFFER, self.mesh.vertices.astype(np.float32), GL_STATIC_DRAW)
 
         if self.mesh.color is not None:
             glBindBuffer(GL_ARRAY_BUFFER, self.color_buffer)
-            glBufferData(GL_ARRAY_BUFFER, self.color_data.astype(np.float32), GL_STATIC_DRAW)
+            glBufferData(GL_ARRAY_BUFFER, self.mesh.color.astype(np.float32), GL_STATIC_DRAW)
         else:
             self.color_buffer = None
 
         glBindBuffer(GL_ARRAY_BUFFER, self.normal_buffer)
-        glBufferData(GL_ARRAY_BUFFER, self.normal_data.astype(np.float32), GL_STATIC_DRAW)
+        glBufferData(GL_ARRAY_BUFFER, self.mesh.normals.astype(np.float32), GL_STATIC_DRAW)
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.indices_buffer)
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, self.index_data.astype(np.uint16), GL_STATIC_DRAW)
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, self.mesh.triangle_indices.astype(np.uint16), GL_STATIC_DRAW)
 
     def load_object(self):
         self.vertex_buffer = glGenBuffers(1)

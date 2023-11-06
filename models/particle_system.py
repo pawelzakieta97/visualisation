@@ -39,9 +39,13 @@ class ParticleSystem(CompoundMesh):
         if self.particles_mesh is None:
             self.particles_mesh = MultiMesh(self.get_reference_mesh(), count=self.particle_count)
         self.particles_mesh.set_positions(self.particles)
-        if self.links_mesh is None and self.links.shape[0] != 0:
-            lines = self.particles[self.links].reshape(-1, 3)
+        lines = self.particles[self.links].reshape(-1, 3)
+        if self.links_mesh is None:
             self.links_mesh = Wireframe(lines, colors=np.ones_like(lines) * 0.8)
+        else:
+            self.links_mesh.lines = lines
+        self.particles_mesh.changed = True
+        self.links_mesh.changed = True
 
     def get_meshes(self) -> Iterable[Mesh]:
         meshes = [self.particles_mesh, self.links_mesh]

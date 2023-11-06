@@ -38,6 +38,9 @@ class Wireframe(Renderable):
         self.load_vbos()
 
     def render(self, projection_matrix, view_matrix, camera_position, lights):
+        if self.model.changed:
+            self.load_vbos()
+            self.model.changed = False
         self.shader.begin()
         glUniformMatrix4fv(self.MVP_ID, 1, GL_FALSE, (projection_matrix @ np.linalg.inv(view_matrix)).T)#glm.value_ptr(VP))
 

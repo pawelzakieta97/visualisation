@@ -6,3 +6,4 @@ class Wireframe:
         super().__init__()
         self.lines = lines
         self.colors = colors
+        self.changed = True
