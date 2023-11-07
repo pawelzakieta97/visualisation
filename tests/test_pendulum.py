@@ -12,6 +12,7 @@ from visualisation.visobject import VisObject
 from visualisation.meshViewer import MeshViewWindow
 from visualisation.wireframe import Wireframe
 
+
 if __name__ == "__main__":
     count = 10
     pos = np.zeros((count, 3))

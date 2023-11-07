@@ -20,8 +20,8 @@ class ParticleSystem(CompoundMesh):
             particle_pos = np.random.random((particle_count, 3))
             if mode_2d:
                 particle_pos[:, 2] = 0
-        self.particles = particle_pos
-        self.particle_count = self.particles.shape[0]
+        self.particle_pos = particle_pos
+        self.particle_count = self.particle_pos.shape[0]
         if links is None:
             links = np.array([])
         self.links = links
@@ -38,8 +38,8 @@ class ParticleSystem(CompoundMesh):
     def update_meshes(self):
         if self.particles_mesh is None:
             self.particles_mesh = MultiMesh(self.get_reference_mesh(), count=self.particle_count)
-        self.particles_mesh.set_positions(self.particles)
-        lines = self.particles[self.links].reshape(-1, 3)
+        self.particles_mesh.set_positions(self.particle_pos)
+        lines = self.particle_pos[self.links].reshape(-1, 3)
         if self.links_mesh is None:
             self.links_mesh = Wireframe(lines, colors=np.ones_like(lines) * 0.8)
         else:

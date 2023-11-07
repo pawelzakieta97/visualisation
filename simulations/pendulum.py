@@ -13,7 +13,7 @@ class Pendulum(ParticleSystem):
         self.velocities = np.zeros_like(particles).astype(float)
         self.masses = np.ones(particles.shape[0]).astype(float)
         self.static = np.zeros(particles.shape[0]).astype(bool)
-        distances = self.particles[self.links]
+        distances = self.particle_pos[self.links]
         self.distances = np.linalg.norm(distances[:, 1, :] - distances[:, 0, :], axis=1)
         self.substeps = substeps
         self.compliances = np.ones_like(self.links)
@@ -28,31 +28,34 @@ class Pendulum(ParticleSystem):
         g = np.array(g).astype(float)
         for substep in range(self.substeps):
             self.integrate(dt/self.substeps, g[None, :])
-            self.solve_parallel()
+            # self.solve_parallel()
+            self.solve_serial()
             self.update_velocities(dt/self.substeps)
         self.update_meshes()
 
     def integrate(self, dt, forces):
         self.velocities += forces * dt / self.masses[:, None] * (1 - self.static)[:, None]
-        self.prev_pos = self.particles.copy()
-        self.particles += self.velocities * dt * (1 - self.static)[:, None]
+        self.prev_pos = self.particle_pos.copy()
+        self.particle_pos += self.velocities * dt * (1 - self.static)[:, None]
 
     def solve_parallel(self):
-        deltas = self.particles[self.links, :2]
+        deltas = self.particle_pos[self.links, :2]
         deltas = deltas[:, 1, :] - deltas[:, 0, :]
         current_distances = np.linalg.norm(deltas, axis=1)
         dirs = deltas / current_distances[:, None]
         differences = self.distances - current_distances
-        self.particles[self.links[:, 0], :2] -= dirs * differences[:, None] * self.compliances[:, 0, None] * 0.5
-        self.particles[self.links[:, 1], :2] += dirs * differences[:, None] * self.compliances[:, 1, None] * 0.5
+        self.particle_pos[self.links[:, 0], :2] -= dirs * differences[:, None] * self.compliances[:, 0, None] * 0.5
+        self.particle_pos[self.links[:, 1], :2] += dirs * differences[:, None] * self.compliances[:, 1, None] * 0.5
         pass
 
     def solve_serial(self):
         for distance, compliance, (p1, p2) in zip(self.distances, self.compliances, self.links):
-            delta = self.particles[p2, :2] - self.particles[p1, :2]
+            delta = self.particle_pos[p2, :2] - self.particle_pos[p1, :2]
             current_distance = np.linalg.norm(delta)
+            direction = delta / current_distance
             difference = distance - current_distance
-            self.particles[p1, :2] -= None
+            self.particle_pos[p1, :2] -= direction * difference * compliance[0]
+            self.particle_pos[p2, :2] += direction * difference * compliance[1]
 
     def update_velocities(self, dt):
-        self.velocities = (self.particles - self.prev_pos) / dt
+        self.velocities = (self.particle_pos - self.prev_pos) / dt
