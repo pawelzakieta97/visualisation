@@ -16,8 +16,12 @@ if __name__ == "__main__":
     pos = np.array([[0, 0, 0],
                     [1, -1, 0],
                     [0, -2, 0],
-                    [1, -3, 0]])
-    p = Pendulum(particles=pos)
+                    [1, -3, 0]
+                    ]
+                   )
+    p = Pendulum(particles=pos, substeps=10)
+    p.static[0] = 1
+    p.update_compliances()
     # TODO: remove get_renderable method, add meshes of particle system separately
     particles_vis = VisObject(p.particles_mesh)
     links_vis = Wireframe(p.links_mesh)
@@ -27,9 +31,9 @@ if __name__ == "__main__":
     win.add_object(particles_vis)
     win.add_object(links_vis)
     win.start()
-    # for i in range(100):
-    #     p.simulate(1/60, [0, -10, 0])
-    #
-    #     time.sleep(1/60)
-    # p.simulate(1 / 60, [0, -10, 0])
+    for i in range(1000):
+        p.simulate(1/60, [0, -10, 0])
+
+        time.sleep(1/60)
+    p.simulate(1 / 60, [0, -10, 0])
     pass
