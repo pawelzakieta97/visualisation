@@ -13,13 +13,11 @@ from visualisation.meshViewer import MeshViewWindow
 from visualisation.wireframe import Wireframe
 
 if __name__ == "__main__":
-    pos = np.array([[0, 0, 0],
-                    [1, -1, 0],
-                    [0, -2, 0],
-                    [1, -3, 0]
-                    ]
-                   )
-    p = Pendulum(particles=pos, substeps=10)
+    count = 10
+    pos = np.zeros((count, 3))
+    pos[:, 0] = np.arange(count)
+    pos[:, 1] = np.arange(count) % 2
+    p = Pendulum(particles=pos/2, substeps=10)
     p.static[0] = 1
     p.update_compliances()
     # TODO: remove get_renderable method, add meshes of particle system separately
@@ -27,7 +25,7 @@ if __name__ == "__main__":
     links_vis = Wireframe(p.links_mesh)
     particles_vis.material.diffuse = np.ones(3)
     # particles_vis.shader_name = 'lines'
-    win = MeshViewWindow(add_floorgrid=True)
+    win = MeshViewWindow(add_floorgrid=True, orthographic=True)
     win.add_object(particles_vis)
     win.add_object(links_vis)
     win.start()
@@ -35,5 +33,4 @@ if __name__ == "__main__":
         p.simulate(1/60, [0, -10, 0])
 
         time.sleep(1/60)
-    p.simulate(1 / 60, [0, -10, 0])
     pass

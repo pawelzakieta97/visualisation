@@ -4,11 +4,11 @@ from models.particle_system import ParticleSystem
 
 
 class Pendulum(ParticleSystem):
-    def __init__(self, particles: np.array, substeps: int = 10):
+    def __init__(self, particles: np.array, substeps: int = 10, *args, **kwargs):
         particles = np.array(particles).astype(float)
         links = np.arange(particles.shape[0])
         links = np.hstack((links[:-1, None], links[1:, None]))
-        super().__init__(particle_pos=particles, links=links)
+        super().__init__(particle_pos=particles, links=links, *args, **kwargs)
         self.prev_pos = particles.copy()
         self.velocities = np.zeros_like(particles).astype(float)
         self.masses = np.ones(particles.shape[0]).astype(float)
@@ -41,10 +41,18 @@ class Pendulum(ParticleSystem):
         deltas = self.particles[self.links, :2]
         deltas = deltas[:, 1, :] - deltas[:, 0, :]
         current_distances = np.linalg.norm(deltas, axis=1)
+        dirs = deltas / current_distances[:, None]
         differences = self.distances - current_distances
-        self.particles[self.links[:, 0], :2] -= deltas * differences[:, None] * self.compliances[:, 0, None] * 0.5
-        self.particles[self.links[:, 1], :2] += deltas * differences[:, None] * self.compliances[:, 1, None] * 0.5
+        self.particles[self.links[:, 0], :2] -= dirs * differences[:, None] * self.compliances[:, 0, None] * 0.5
+        self.particles[self.links[:, 1], :2] += dirs * differences[:, None] * self.compliances[:, 1, None] * 0.5
         pass
+
+    def solve_serial(self):
+        for distance, compliance, (p1, p2) in zip(self.distances, self.compliances, self.links):
+            delta = self.particles[p2, :2] - self.particles[p1, :2]
+            current_distance = np.linalg.norm(delta)
+            difference = distance - current_distance
+            self.particles[p1, :2] -= None
 
     def update_velocities(self, dt):
         self.velocities = (self.particles - self.prev_pos) / dt
