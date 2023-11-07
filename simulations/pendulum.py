@@ -9,6 +9,7 @@ class Pendulum(ParticleSystem):
         links = np.arange(particles.shape[0])
         links = np.hstack((links[:-1, None], links[1:, None]))
         super().__init__(particle_pos=particles, links=links)
+        self.prev_pos = particles.copy()
         self.velocities = np.zeros_like(particles).astype(float)
         self.masses = np.ones(particles.shape[0]).astype(float)
         distances = self.particles[self.links]
@@ -22,9 +23,12 @@ class Pendulum(ParticleSystem):
         self.update_meshes()
 
     def integrate(self, dt, forces):
-        self.particles += self.velocities * dt
         self.velocities += forces * dt / self.masses[:, None]
+        self.prev_pos = self.particles.copy()
+        self.particles += self.velocities * dt
+        self.solve_parallel()
 
-    def solve(self):
-        distances = self.particles[self.links]
-        self.distances = np.linalg.norm(distances[:, 1, :] - distances[:, 0, :], axis=1)
+    def solve_parallel(self):
+        deltas = self.particles[self.links]
+        deltas = np.linalg.norm(deltas[:, 1, :] - deltas[:, 0, :], axis=1)
+        pass

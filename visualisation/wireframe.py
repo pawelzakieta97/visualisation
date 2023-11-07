@@ -22,13 +22,13 @@ class Wireframe(Renderable):
         self.MVP_ID = glGetUniformLocation(self.shader.program, "MVP")
 
     def load_vbos(self):
+        pass
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.vertex_buffer)
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, self.model.lines.astype(np.float32).flatten(),
                      GL_STATIC_DRAW)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.color_buffer)
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, self.model.colors.astype(np.float32).flatten(),
                      GL_STATIC_DRAW)
-
 
     def load_object(self):
 
@@ -42,7 +42,7 @@ class Wireframe(Renderable):
             self.load_vbos()
             self.model.changed = False
         self.shader.begin()
-        glUniformMatrix4fv(self.MVP_ID, 1, GL_FALSE, (projection_matrix @ np.linalg.inv(view_matrix)).T)#glm.value_ptr(VP))
+        glUniformMatrix4fv(self.MVP_ID, 1, GL_FALSE, (projection_matrix @ np.linalg.inv(view_matrix)).T)
 
         glEnableVertexAttribArray(0)
         glBindBuffer(GL_ARRAY_BUFFER, self.vertex_buffer)
@@ -55,4 +55,5 @@ class Wireframe(Renderable):
         glDrawArrays(GL_LINES, 0, len(self.model.lines.flatten()) // 3)  # 12*3 indices starting at 0 -> 12 triangles
 
         glDisableVertexAttribArray(0)
+        glDisableVertexAttribArray(1)
         self.shader.end()

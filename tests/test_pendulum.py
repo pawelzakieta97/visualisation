@@ -22,14 +22,14 @@ if __name__ == "__main__":
     particles_vis = VisObject(p.particles_mesh)
     links_vis = Wireframe(p.links_mesh)
     particles_vis.material.diffuse = np.ones(3)
-    particles_vis.shader_name = 'lines'
+    # particles_vis.shader_name = 'lines'
     win = MeshViewWindow(add_floorgrid=True)
     win.add_object(particles_vis)
     win.add_object(links_vis)
     win.start()
-    for i in range(100):
-        p.simulate(1/60, [0, -10, 0])
-
-        time.sleep(1/60)
+    # for i in range(100):
+    #     p.simulate(1/60, [0, -10, 0])
+    #
+    #     time.sleep(1/60)
     # p.simulate(1 / 60, [0, -10, 0])
     pass

@@ -33,11 +33,6 @@ class VisObject(Renderable):
         self.shader = None
         self.shader_name = shader_name
         self.mesh = mesh
-        self.vertex_data = mesh.vertices.flatten()
-        self.color_data = mesh.color.flatten() if mesh.color is not None else None
-        self.index_data = mesh.triangle_indices.flatten()
-        self.normal_data = mesh.normals.flatten()
-        # self.transformation = mesh.transformation.astype(np.float32)
         self.material = material
 
     def load_shader(self):
@@ -61,7 +56,6 @@ class VisObject(Renderable):
         self.light_color_id = glGetUniformLocation(self.shader.program, "lightColor")
 
     def load_vbos(self):
-        print('loading_vbos')
         glBindBuffer(GL_ARRAY_BUFFER, self.vertex_buffer)
         glBufferData(GL_ARRAY_BUFFER, self.mesh.vertices.astype(np.float32), GL_STATIC_DRAW)
 
@@ -112,21 +106,18 @@ class VisObject(Renderable):
         glEnableVertexAttribArray(2)
         glBindBuffer(GL_ARRAY_BUFFER, self.normal_buffer)
         glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, None)
-        # Possible to render multiple instances of the same shape with different transformation matrices
-        for i in range(1):
-            transformation = get_translation_matrix(i * 1.1)
+        glUniformMatrix4fv(self.object_transformation_id, 1, GL_FALSE,
+                           self.mesh.transformation.T)
 
-            glUniformMatrix4fv(self.object_transformation_id, 1, GL_FALSE,
-                               transformation.T)
+        # glDrawArrays(GL_TRIANGLES, 0, self.vertexLen)
 
-            # glDrawArrays(GL_TRIANGLES, 0, self.vertexLen)
-
-            glDrawElements(
-                GL_TRIANGLES,  # mode
-                len(self.index_data),  # // count
-                GL_UNSIGNED_SHORT,  # // type
-                None  # // element array buffer offset
-            )
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.indices_buffer)
+        glDrawElements(
+            GL_TRIANGLES,  # mode
+            len(self.mesh.triangle_indices) * 3,  # // count
+            GL_UNSIGNED_SHORT,  # // type
+            None  # // element array buffer offset
+        )
 
         glDisableVertexAttribArray(0)
         glDisableVertexAttribArray(1)
