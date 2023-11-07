@@ -14,11 +14,14 @@ from visualisation.wireframe import Wireframe
 
 
 if __name__ == "__main__":
-    count = 10
+    length = 2
+    count = 1000
     pos = np.zeros((count, 3))
-    pos[:, 0] = np.arange(count)
-    pos[:, 1] = np.arange(count) % 2
-    p = Pendulum(particles=pos/2, substeps=10)
+    # pos[:, 0] = np.linspace(0, 1, count) * length * np.sin(np.linspace(0, 2 * np.pi, count))
+    # pos[:, 2] = np.linspace(0, 1, count) * length * np.cos(np.linspace(0, 2 * np.pi, count))
+    pos[:, 0] = np.linspace(0, 1, count) * length
+    # pos[:, 1] = np.arange(count) % 2
+    p = Pendulum(particles=pos, substeps=100, mesh_scale=0.01)
     p.static[0] = 1
     p.update_compliances()
     # TODO: remove get_renderable method, add meshes of particle system separately
@@ -32,6 +35,7 @@ if __name__ == "__main__":
     win.start()
     for i in range(1000):
         p.simulate(1/60, [0, -10, 0])
-
+        #
         time.sleep(1/60)
+        # p.update_meshes()
     pass

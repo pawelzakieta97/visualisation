@@ -12,7 +12,7 @@ from models.wireframe import Wireframe
 class ParticleSystem(CompoundMesh):
     def __init__(self, particle_pos: np.array=None,
                  particle_count=None,
-                 links=None, mode_2d=True, reference_mesh: Mesh = None):
+                 links=None, mode_2d=True, reference_mesh: Mesh = None, mesh_scale: float = None):
         if particle_pos is None:
             if particle_count is None:
                 particle_count = 100
@@ -28,11 +28,14 @@ class ParticleSystem(CompoundMesh):
         self.reference_mesh = reference_mesh
         self.particles_mesh = None
         self.links_mesh = None
+        if mesh_scale is None:
+            mesh_scale = 1 / particle_count
+        self.mesh_scale = mesh_scale
         self.update_meshes()
 
     def get_reference_mesh(self):
         if self.reference_mesh is None:
-            self.reference_mesh = Sphere(radius=1/(self.particle_count**0.5)/5, vert_count=14)
+            self.reference_mesh = Sphere(radius=self.mesh_scale, vert_count=14)
         return self.reference_mesh
 
     def update_meshes(self):

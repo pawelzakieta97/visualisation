@@ -1,10 +1,12 @@
 import numpy as np
+import numba
+from numba import jit
 
 from models.particle_system import ParticleSystem
 
 
 class Pendulum(ParticleSystem):
-    def __init__(self, particles: np.array, substeps: int = 10, *args, **kwargs):
+    def __init__(self, particles: np.array, substeps: int = 100, *args, **kwargs):
         particles = np.array(particles).astype(float)
         links = np.arange(particles.shape[0])
         links = np.hstack((links[:-1, None], links[1:, None]))
@@ -29,7 +31,8 @@ class Pendulum(ParticleSystem):
         for substep in range(self.substeps):
             self.integrate(dt/self.substeps, g[None, :])
             # self.solve_parallel()
-            self.solve_serial()
+            # self.solve_serial()
+            solve_distance_constraints(self.particle_pos, self.distances, self.compliances, self.links)
             self.update_velocities(dt/self.substeps)
         self.update_meshes()
 
@@ -46,16 +49,26 @@ class Pendulum(ParticleSystem):
         differences = self.distances - current_distances
         self.particle_pos[self.links[:, 0], :2] -= dirs * differences[:, None] * self.compliances[:, 0, None] * 0.5
         self.particle_pos[self.links[:, 1], :2] += dirs * differences[:, None] * self.compliances[:, 1, None] * 0.5
-        pass
 
     def solve_serial(self):
         for distance, compliance, (p1, p2) in zip(self.distances, self.compliances, self.links):
-            delta = self.particle_pos[p2, :2] - self.particle_pos[p1, :2]
+            delta = self.particle_pos[p2, :] - self.particle_pos[p1, :]
             current_distance = np.linalg.norm(delta)
             direction = delta / current_distance
             difference = distance - current_distance
-            self.particle_pos[p1, :2] -= direction * difference * compliance[0]
-            self.particle_pos[p2, :2] += direction * difference * compliance[1]
+            self.particle_pos[p1, :] -= direction * difference * compliance[0]
+            self.particle_pos[p2, :] += direction * difference * compliance[1]
 
     def update_velocities(self, dt):
         self.velocities = (self.particle_pos - self.prev_pos) / dt
+
+@jit(nopython=True)
+def solve_distance_constraints(particle_pos, distances, compliances, links):
+    for distance, compliance, (p1, p2) in zip(distances, compliances, links):
+        delta = particle_pos[p2, :] - particle_pos[p1, :]
+        current_distance = (delta[0]**2 + delta[1]**2 + delta[2]**2) ** 0.5
+        direction = delta / current_distance
+        difference = distance - current_distance
+        particle_pos[p1, :] -= direction * difference * compliance[0]
+        particle_pos[p2, :] += direction * difference * compliance[1]
+
