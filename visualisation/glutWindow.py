@@ -1,6 +1,7 @@
 import math
 import threading
 import time
+from typing import Callable
 
 import OpenGL.GLUT as oglut
 import sys
@@ -10,7 +11,8 @@ import OpenGL.GLU as glu
 
 class GlutWindow(threading.Thread):
 
-    def __init__(self, width=800, height=480, window_name='window', *args,
+    def __init__(self, width=800, height=480, window_name='window',
+                 tick_func: Callable = None, target_fps=60, *args,
                  **kwargs):
         super().__init__()
         self.window = None
@@ -22,7 +24,10 @@ class GlutWindow(threading.Thread):
         self.keyboard_state = []
         self.frame_number = 0
         self.last_fps_update = time.perf_counter()
-        self.target_fps = 60
+        self.target_fps = target_fps
+        self.tick_func = tick_func
+        self.tick_duration_cum = 0
+        self.render_duration_cum = 0
 
     def print_gpu_info(self):
         print(gl.glGetString(gl.GL_VENDOR))
@@ -106,17 +111,34 @@ class GlutWindow(threading.Thread):
 
     def timerCallback(self, *args, **kwargs):
         self.frame_number += 1
-        numFpsFrames = 30
-        currentTime = time.perf_counter()
-
-        if self.frame_number % numFpsFrames == 0:
-            passedTime = currentTime - self.last_fps_update
-            self.last_fps_update = currentTime
-            fps = math.floor(numFpsFrames / passedTime)
-            oglut.glutSetWindowTitle(self.window_name + ' ' + str(fps) + " fps")
+        tick_duration = 0
+        if self.tick_func is not None:
+            s = time.perf_counter()
+            self.tick_func()
+            tick_duration = time.perf_counter() - s
+            self.tick_duration_cum += tick_duration
+        s = time.perf_counter()
         self.display()
-        render_time = (time.perf_counter() - currentTime) * 1000
-        oglut.glutTimerFunc(max(0, math.floor((1000.0 / self.target_fps) - render_time)), self.timerCallback, 0)
+        render_duration = time.perf_counter() - s
+        self.render_duration_cum += render_duration
+        title_update_period = 30
+        if self.frame_number % title_update_period == 0:
+            now = time.perf_counter()
+            fps = math.floor(title_update_period / (now - self.last_fps_update))
+            self.last_fps_update = now
+            tick_time = self.tick_duration_cum/title_update_period
+            render_time = self.render_duration_cum/title_update_period
+            title = f'{self.window_name} {fps} fps. '\
+                    f'\ttick {str(tick_time * 1000)[:6]}ms'\
+                    f'\trender {str(render_time * 1000)[:6]}ms'\
+                    f'\tusage {int((tick_time + render_time) * fps * 100)}%'
+            oglut.glutSetWindowTitle(title)
+            # print(title)
+            self.tick_duration_cum = 0
+            self.render_duration_cum = 0
+
+        oglut.glutTimerFunc(max(0, int((1 / self.target_fps - render_duration - tick_duration) * 1000)),
+                            self.timerCallback, 0)
 
 
 if __name__ == "__main__":
