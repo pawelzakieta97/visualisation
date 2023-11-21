@@ -10,6 +10,15 @@ def get_translation_matrix(dx=0, dy=0, dz=0, translation=None):
     t[:-1, -1] = translation_vector
     return t
 
+
+def get_scale_matrix(sx=1, sy=1, sz=1, scale=None):
+    t = np.eye(4)
+    if scale is None:
+        scale = [sx, sy, sz]
+    t[[0,1,2], [0,1,2]] = scale
+    return t
+
+
 def get_rotation_matrix_x(angle):
     return np.array([[1, 0,             0,              0],
                      [0, np.cos(angle), -np.sin(angle), 0],
