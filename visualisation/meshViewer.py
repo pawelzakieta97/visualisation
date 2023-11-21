@@ -15,9 +15,9 @@ from visualisation.renderable_factory import get_renderable
 
 class MeshViewWindow(GlutWindow):
     def __init__(self, light: Light = None, add_floorgrid=False, orthographic=False,
-                 *args, **kwargs):
+                 **kwargs):
 
-        super().__init__(*args, **kwargs)
+        super().__init__(**kwargs)
 
         self.projection_matrix = None
         self.menu = None

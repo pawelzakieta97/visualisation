@@ -1,5 +1,4 @@
 import math
-import threading
 import time
 from typing import Callable
 
@@ -9,7 +8,7 @@ import OpenGL.GL as gl
 import OpenGL.GLU as glu
 
 
-class GlutWindow(threading.Thread):
+class GlutWindow:
 
     def __init__(self, width=800, height=480, window_name='window',
                  tick_func: Callable = None, target_fps=60, *args,
@@ -42,7 +41,7 @@ class GlutWindow(threading.Thread):
         gl.glClearColor(0.0,0,0.4,0)
         gl.glDepthFunc(gl.GL_LESS)
         gl.glEnable(gl.GL_DEPTH_TEST)
-        oglut.glutDisplayFunc(self.display)
+        oglut.glutDisplayFunc(self.timerCallback)
         oglut.glutReshapeFunc(self.resize)
         oglut.glutKeyboardFunc(self.on_keyboard)
         oglut.glutKeyboardUpFunc(self.on_keyup)
@@ -68,6 +67,7 @@ class GlutWindow(threading.Thread):
         self.controller.on_keyboard(self.keyboard_state, dt)
         self.ogl_draw()
         oglut.glutSwapBuffers()
+        oglut.glutPostRedisplay()
 
     def idle(self):
         pass
@@ -106,10 +106,11 @@ class GlutWindow(threading.Thread):
             self.keyboard_state.remove(key)
 
     def run(self):
-        self.timerCallback()
+        # self.timerCallback()
         oglut.glutMainLoop()
 
     def timerCallback(self, *args, **kwargs):
+        start = time.perf_counter()
         self.frame_number += 1
         tick_duration = 0
         if self.tick_func is not None:
@@ -136,9 +137,10 @@ class GlutWindow(threading.Thread):
             # print(title)
             self.tick_duration_cum = 0
             self.render_duration_cum = 0
-
-        oglut.glutTimerFunc(max(0, int((1 / self.target_fps - render_duration - tick_duration) * 1000)),
-                            self.timerCallback, 0)
+        sleep_time = max(0.0, 1 / self.target_fps - (time.perf_counter() - start))
+        time.sleep(sleep_time)
+        # oglut.glutTimerFunc(max(0, int((1 / self.target_fps - render_duration - tick_duration) * 1000)),
+        #                     self.timerCallback, 0)
 
 
 if __name__ == "__main__":
