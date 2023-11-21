@@ -1,7 +1,6 @@
 import numpy as np
 
 from models.mesh import Mesh
-from models.cube import get_unit_cube_vertices
 
 
 class Circle(Mesh):
@@ -12,9 +11,9 @@ class Circle(Mesh):
         vertices = np.zeros((vert_count + 1, 3))
         vertices[1:, 0] = x
         vertices[1:, 1] = y
-        normals = np.zeros((vert_count, 3))
+        normals = np.zeros((vert_count + 1, 3))
         normals[:, 2] = 1
-        triangle_indices = np.zeros((vert_count, 3))
+        triangle_indices = np.zeros((vert_count, 3)).astype(int)
         triangle_indices[:, 1] = np.arange(vert_count) + 1
         triangle_indices[:-1, 2] = np.arange(1, vert_count) + 1
         triangle_indices[-1, 2] = 1

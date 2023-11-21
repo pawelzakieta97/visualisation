@@ -19,7 +19,7 @@ class GlutWindow:
         self.height = height
         self.window_name = window_name
         self.controller = None
-        self.update_if = None #oglut.glutPostRedisplay
+        self.update_if = None  # oglut.glutPostRedisplay
         self.keyboard_state = []
         self.frame_number = 0
         self.last_fps_update = time.perf_counter()
@@ -38,7 +38,7 @@ class GlutWindow:
         oglut.glutInitDisplayMode(oglut.GLUT_RGBA | oglut.GLUT_DOUBLE | oglut.GLUT_DEPTH)
         print(self.width)
         self.print_gpu_info()
-        gl.glClearColor(0.0,0,0.4,0)
+        gl.glClearColor(0.0, 0, 0.4, 0)
         gl.glDepthFunc(gl.GL_LESS)
         gl.glEnable(gl.GL_DEPTH_TEST)
         oglut.glutDisplayFunc(self.timerCallback)
@@ -48,22 +48,22 @@ class GlutWindow:
         oglut.glutSpecialFunc(self.on_special_key)
         oglut.glutMouseFunc(self.on_mouse)
         oglut.glutMotionFunc(self.on_mousemove)
-        
+
     def ogl_draw(self):
         gl.glPolygonMode(gl.GL_FRONT_AND_BACK, gl.GL_LINE)
 
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
         oglut.GLUT_KEY_UP
-        glu.gluLookAt(4.0,3.0,-3.0, 
-                0.0,0.0,0.0,
-                0.0,1.0,0.0)
-        #built in model
+        glu.gluLookAt(4.0, 3.0, -3.0,
+                      0.0, 0.0, 0.0,
+                      0.0, 1.0, 0.0)
+        # built in model
         oglut.glutSolidTeapot(1)
 
         print("please overrider ogl_draw")
 
     def display(self):
-        dt = 1/self.target_fps
+        dt = 1 / self.target_fps
         self.controller.on_keyboard(self.keyboard_state, dt)
         self.ogl_draw()
         oglut.glutSwapBuffers()
@@ -72,35 +72,35 @@ class GlutWindow:
     def idle(self):
         pass
 
-    def resize(self,Width,Height):
+    def resize(self, Width, Height):
         print("please overrider resize")
         gl.glViewport(0, 0, Width, Height)
-        glu.gluPerspective(45.0, float(Width)/float(Height), 0.1, 1000.0)        
+        glu.gluPerspective(45.0, float(Width) / float(Height), 0.1, 1000.0)
 
-    def on_keyboard(self,key,x,y):
+    def on_keyboard(self, key, x, y):
         key = key.decode()
         if key not in self.keyboard_state:
             self.keyboard_state.append(key)
 
-    def on_special_key(self,key,x,y):     
-        if(self.controller!=None):
-              self.controller.on_special_key(key,x,y)
+    def on_special_key(self, key, x, y):
+        if self.controller is not None:
+            self.controller.on_special_key(key, x, y)
         else:
             print("please overrider on_keyboard")
 
-    def on_mouse(self,*args,**kwargs):
-        if(self.controller!=None):
-              self.controller.on_mouse(*args,**kwargs)
+    def on_mouse(self, *args, **kwargs):
+        if self.controller is not None:
+            self.controller.on_mouse(*args, **kwargs)
         else:
             print("please overrider on_mouse")
 
-    def on_mousemove(self,*args,**kwargs):
-        if(self.controller!=None):
-              self.controller.on_mousemove(*args,**kwargs)
+    def on_mousemove(self, *args, **kwargs):
+        if self.controller != None:
+            self.controller.on_mousemove(*args, **kwargs)
         else:
             print("please overrider on_mousemove")
 
-    def on_keyup(self, key,x,y):
+    def on_keyup(self, key, x, y):
         key = key.decode()
         if key in self.keyboard_state:
             self.keyboard_state.remove(key)
@@ -127,11 +127,11 @@ class GlutWindow:
             now = time.perf_counter()
             fps = math.floor(title_update_period / (now - self.last_fps_update))
             self.last_fps_update = now
-            tick_time = self.tick_duration_cum/title_update_period
-            render_time = self.render_duration_cum/title_update_period
-            title = f'{self.window_name} {fps} fps. '\
-                    f'\ttick {str(tick_time * 1000)[:6]}ms'\
-                    f'\trender {str(render_time * 1000)[:6]}ms'\
+            tick_time = self.tick_duration_cum / title_update_period
+            render_time = self.render_duration_cum / title_update_period
+            title = f'{self.window_name} {fps} fps. ' \
+                    f'\ttick {str(tick_time * 1000)[:6]}ms' \
+                    f'\trender {str(render_time * 1000)[:6]}ms' \
                     f'\tusage {int((tick_time + render_time) * fps * 100)}%'
             oglut.glutSetWindowTitle(title)
             # print(title)

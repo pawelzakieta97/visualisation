@@ -5,7 +5,7 @@ import numpy as np
 from models.compound_mesh import CompoundMesh
 from models.mesh import Mesh
 from models.multi_mesh import MultiMesh
-from models.sphere import Sphere
+from models.primitives.sphere import Sphere
 from models.wireframe import Wireframe
 
 
