@@ -48,6 +48,7 @@ class GlutWindow:
         oglut.glutSpecialFunc(self.on_special_key)
         oglut.glutMouseFunc(self.on_mouse)
         oglut.glutMotionFunc(self.on_mousemove)
+        oglut.glutSetOption(oglut.GLUT_ACTION_ON_WINDOW_CLOSE, oglut.GLUT_ACTION_CONTINUE_EXECUTION)
 
     def ogl_draw(self):
         gl.glPolygonMode(gl.GL_FRONT_AND_BACK, gl.GL_LINE)
@@ -68,6 +69,10 @@ class GlutWindow:
         self.ogl_draw()
         oglut.glutSwapBuffers()
         oglut.glutPostRedisplay()
+
+    def close(self):
+        oglut.glutLeaveMainLoop()
+        # oglut.glutDestroyWindow(self.window)
 
     def idle(self):
         pass
@@ -139,6 +144,8 @@ class GlutWindow:
             self.render_duration_cum = 0
         sleep_time = max(0.0, 1 / self.target_fps - (time.perf_counter() - start))
         time.sleep(sleep_time)
+        if self.frame_number > 10000:
+            self.close()
         # oglut.glutTimerFunc(max(0, int((1 / self.target_fps - render_duration - tick_duration) * 1000)),
         #                     self.timerCallback, 0)
 

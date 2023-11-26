@@ -25,6 +25,7 @@ class MultiMesh(Mesh):
     def transform_mesh(self, transformations: np.array):
         uniform_verts = np.concatenate((self.base_vertices, np.ones((self.count, 1, self.vert_count))), axis=1)
         self.vertices = (transformations @ uniform_verts).transpose((0, 2, 1))[:,:,:-1].reshape(-1, 3)
+        # TODO: fix normals transformations (works for translation and rotation, breaks for non-uniform scaling)
         self.normals = (transformations[:, :-1, :-1] @ self.base_normals).transpose((0, 2, 1)).reshape(-1, 3)
         self.changed = True
         pass

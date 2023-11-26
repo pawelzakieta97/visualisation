@@ -16,7 +16,6 @@ class ParticleSystem(CompoundMesh):
         if particle_pos is None:
             if particle_count is None:
                 particle_count = 100
-            ndims = 2 if mode_2d else 3
             particle_pos = np.random.random((particle_count, 3))
             if mode_2d:
                 particle_pos[:, 2] = 0
