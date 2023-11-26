@@ -1,9 +1,9 @@
 import numpy as np
 
-from models.circle import Circle
+from models.primitives.circle import Circle
 from models.multi_mesh import MultiMesh
-from models.sphere import Sphere
-from models.cube import Cube
+from models.primitives.sphere import Sphere
+from models.primitives.cube import Cube
 from visualisation.visobject import VisObject
 from visualisation.meshViewer import MeshViewWindow
 from transformations import get_translation_matrix

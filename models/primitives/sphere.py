@@ -1,7 +1,7 @@
 import numpy as np
 
 from models.mesh import Mesh
-from models.cube import get_unit_cube_vertices
+from models.primitives.cube import get_unit_cube_vertices
 
 
 class Sphere(Mesh):

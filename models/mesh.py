@@ -30,6 +30,10 @@ class Mesh:
                     triangle_indices=self.triangle_indices.copy(),
                     color=color, normals=self.normals)
 
+    def flip_normals(self):
+        self.triangle_indices[:, [0,1]] = self.triangle_indices[:, [1,0]]
+        self.normals = self.get_normals()
+
     def get_edges(self):
         all_edges = np.hstack((self.triangle_indices[:, :2],
                                self.triangle_indices[:, 1:],
@@ -65,10 +69,13 @@ class Mesh:
             vertex_normals[triangle_idx, :] += normal
         return vertex_normals / np.linalg.norm(vertex_normals, axis=1)[:, None]
 
-    def transform(self, transform_matrix):
+    def transform_mesh(self, transform_matrix):
         self.vertices = transform_matrix.dot(np.hstack(
             (self.vertices, np.ones((self.vertices.shape[0], 1)))
         ).T).T[:, :-1]
+
+    def transform(self, transform_matrix):
+        self.transformation = self.transformation @ transform_matrix
 
     def flatten(self):
         new_vertices = self.vertices[self.triangle_indices, :].reshape(-1, 3)
@@ -148,8 +155,8 @@ def get_grid(segments_x, segments_y, seg_size):
     vertices = quads.reshape(-1, 2)
     colors = colors.reshape(-1, 3)
     grid = Mesh(vertices, triangles_indexes, color=colors)
-    grid.transform(get_rotation_matrix_x(-np.pi / 2))
-    grid.transform(get_translation_matrix(dx=-5))
+    grid.transform_mesh(get_rotation_matrix_x(-np.pi / 2))
+    grid.transform_mesh(get_translation_matrix(dx=-5))
     return grid
 
 

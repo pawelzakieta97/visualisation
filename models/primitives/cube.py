@@ -31,14 +31,11 @@ def get_unit_cube_vertices():
 class Cube(Mesh):
     def __init__(self, position: Sequence = None,
                  size: Union[float, Sequence] = 1.0,
-                 color: np.array = None,
                  smooth=False):
         if position is None:
             position = [0, 0, 0]
         if isinstance(size, float) or isinstance(size, int):
             size = [size, size, size]
-        if color is None:
-            color = np.ones(3) * 0.5
         vertices, triangle_indices = get_unit_cube_vertices()
         vertices *= np.array(size)[None, :]
         vertices += np.array(position)[None, :]
