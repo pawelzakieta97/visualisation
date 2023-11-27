@@ -9,14 +9,12 @@ from transformations import get_rotation_matrix_x, get_translation_matrix, get_s
 
 
 class Cylinder(Mesh):
-    def __init__(self, position: Sequence = None,
+    def __init__(self,
                  radius: float = 1,
                  height: float = 1,
                  segments: int = 30,
                  smooth=True):
-        if position is None:
-            position = [0, 0, 0]
-        base = Circle(radius=radius, vert_count=segments)
+        base = Circle(radius=radius, vert_count=segments, center_point=True)
         base.transform_mesh(get_rotation_matrix_x(np.pi/2))
         top = base.copy()
         top.transform_mesh(get_translation_matrix(dy=height))

@@ -113,6 +113,45 @@ class Mesh:
                                                new_triangle2_indexes[None, :]))
         self.edges, self.triangle_edges = self.get_edges()
 
+    @staticmethod
+    def edge_id(a, b):
+        return (str((a, b)), False) if b > a else (str((b, a)), True)
+
+    def subdivide2(self):
+        new_vertices = {}
+        vertices = self.vertices.copy()
+        triangle_indices = np.zeros((4*self.triangle_indices.shape[0], 3))
+        for i, triangle in enumerate(self.triangle_indices):
+            t1, t2, t3 = triangle
+            for a, b in zip([t1,t2,t3], [t2,t3,t1]):
+                edge_id, reverse = self.edge_id(a, b)
+                if edge_id in new_vertices:
+                    continue
+                new_point = (self.vertices[a, :] + self.vertices[b, :])/2
+                new_vertices[edge_id] = vertices.shape[0]
+                vertices = np.vstack((vertices, new_point[None, :]))
+
+        for i, triangle in enumerate(self.triangle_indices):
+            t1, t2, t3 = triangle
+            # center triangle
+            for en, (a, b) in enumerate(zip([t1,t2,t3], [t2,t3,t1])):
+                edge_id, reverse = self.edge_id(a, b)
+                triangle_indices[4*i, en] = new_vertices[edge_id]
+            # side triangles
+            for en, (a, b, c) in enumerate(zip([t1, t2, t3], [t2, t3, t1], [t3, t1, t2])):
+                edge_id1, reverse = self.edge_id(a, b)
+                edge_id2, reverse = self.edge_id(b, c)
+                triangle_indices[4*i + en + 1, 0] = new_vertices[edge_id1]
+                triangle_indices[4*i + en + 1, 1] = b
+                triangle_indices[4*i + en + 1, 2] = new_vertices[edge_id2]
+
+        self.triangle_indices = triangle_indices.astype(int)
+        self.vertices = vertices
+        self.normals = self.get_normals()
+        self.changed = True
+        pass
+
+
 
 def get_rect(segments_x, segments_y, seg_size):
     xs, ys = np.meshgrid(np.arange(0, segments_x) * seg_size, np.arange(0, segments_y) * seg_size)
