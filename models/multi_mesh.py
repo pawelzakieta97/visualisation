@@ -41,7 +41,7 @@ def merge_meshes(objects: list[Mesh]):
     merged_verts = np.zeros((sum(vert_counts), 3))
     merged_colors = np.zeros_like(merged_verts)
     merged_normals = np.zeros_like(merged_verts)
-    merged_triangle_indices = np.zeros((sum(triangle_indices_count), 3))
+    merged_triangle_indices = np.zeros((sum(triangle_indices_count), 3)).astype(int)
     first_vert_index = 0
     first_tri_index = 0
     for obj in objects:
