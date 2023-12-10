@@ -34,7 +34,7 @@ class ParticleSystem(CompoundMesh):
 
     def get_reference_mesh(self):
         if self.reference_mesh is None:
-            self.reference_mesh = Sphere(radius=self.mesh_scale, vert_count=14)
+            self.reference_mesh = Sphere(radius=self.mesh_scale, smoothness=1)
         return self.reference_mesh
 
     def update_meshes(self):

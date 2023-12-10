@@ -1,5 +1,3 @@
-from enum import Enum
-
 import numpy as np
 from OpenGL.GL import *  # pylint: disable=W0614
 
@@ -13,59 +11,46 @@ from visualisation.shader import Shader
 from models.mesh import Mesh
 
 
-class ColorMode(Enum):
-    UNIFORM = 0
-    VERTEX_COLOR = 1
-    UV = 2
+class Bitmap(Renderable):
 
+    def __init__(self, img_data: np.array):
+        super().__init__()
+        width = img_data.shape[0]
+        height = img_data.shape[1]
+        xs = np.arange(width + 1)[None, :] * np.ones((height + 1, 1))
+        ys = np.arange(height + 1)[:, None] * np.ones((1, width + 1))
+        quads = np.zeros((height, width, 4, 3))
+        quads[:, :, 0, 0] = xs[:height, :width]
+        quads[:, :, 1, 0] = xs[1:, :width]
+        quads[:, :, 2, 0] = xs[1:, 1:]
+        quads[:, :, 3, 0] = xs[:height, 1:]
+        quads[:, :, 0, 2] = ys[:height, :width]
+        quads[:, :, 1, 2] = ys[1:, :width]
+        quads[:, :, 2, 2] = ys[1:, 1:]
+        quads[:, :, 3, 2] = ys[:height, 1:]
+        quads = quads.reshape(height * width * 4, 3)
+        self.height = height
+        self.width = width
+        self.vertices = quads
 
-class VisObject(Renderable):
-
-
-    def __init__(self, mesh: Mesh, material: Material = None):
-        if material is None:
-            material = Material()
-        super().__init__(material=material)
-        self.indices_buffer = None
-        self.normal_buffer = None
+        self.colors = None
         self.vertex_buffer = None
-        self.uv_buffer = None
         self.color_buffer = None
-        self.light_color_id = None
-        self.light_pos_id = None
-        self.object_glossiness_id = None
-        self.object_reflectiveness_id = None
-        self.object_diffuse_id = None
-        self.camera_pos_id = None
-        self.MVP_ID = None
-        self.object_transformation_id = None
-        self.camera_transformation_id = None
-        self.shader = None
-        self.mesh = mesh
-        self.material = material
+        self.set_image_data(img_data)
+        pass
 
-    def get_color_mode(self):
-        if np.ndim(self.material.diffuse) > 2:
-            return ColorMode.UV
-        elif np.ndim(self.mesh.color) == 2:
-            return ColorMode.VERTEX_COLOR
-        else:
-            return ColorMode.UNIFORM
-
+    def set_image_data(self, image_data: np.array):
+        self.colors = image_data.reshape((self.height, self.width, -1))
     def load_shader(self):
         self.shader = Shader()
-        if self.get_color_mode() == ColorMode.UNIFORM:
+        if self.mesh.color is None:
             self.shader.initShaderFromGLSL(
-                [f"{self.SHADER_DIRECTORY}/phong/vertex.glsl"],
-                [f"{self.SHADER_DIRECTORY}/phong/fragment.glsl"])
-        elif self.get_color_mode() == ColorMode.VERTEX_COLOR:
+                [f"{self.SHADER_DIRECTORY}/{self.shader_name}/vertex.glsl"],
+                [f"{self.SHADER_DIRECTORY}/{self.shader_name}/fragment.glsl"])
+        else:
             self.shader.initShaderFromGLSL(
-                [f"{self.SHADER_DIRECTORY}/phong/vertex_vc.glsl"],
-                [f"{self.SHADER_DIRECTORY}/phong/fragment_vc.glsl"])
-        elif self.get_color_mode() == ColorMode.UV:
-            self.shader.initShaderFromGLSL(
-                [f"{self.SHADER_DIRECTORY}/phong/vertex_textured.glsl"],
-                [f"{self.SHADER_DIRECTORY}/phong/fragment_textured.glsl"])
+                [f"{self.SHADER_DIRECTORY}/{self.shader_name}/vertex_vc.glsl"],
+                [f"{self.SHADER_DIRECTORY}/{self.shader_name}/fragment_vc.glsl"])
         self.MVP_ID = glGetUniformLocation(self.shader.program, "MVP")
         self.camera_transformation_id = glGetUniformLocation(self.shader.program, "cameraTransformation")
         self.camera_pos_id = glGetUniformLocation(self.shader.program, "cameraPosition")
@@ -75,20 +60,17 @@ class VisObject(Renderable):
         self.object_transformation_id = glGetUniformLocation(self.shader.program, "objectTransformation")
         self.light_pos_id = glGetUniformLocation(self.shader.program, "lightPosition")
         self.light_color_id = glGetUniformLocation(self.shader.program, "lightColor")
-        self.TextureID = glGetUniformLocation(self.shader.program, "myTextureSampler")
 
     def load_vbos(self):
         glBindBuffer(GL_ARRAY_BUFFER, self.vertex_buffer)
         glBufferData(GL_ARRAY_BUFFER, self.mesh.vertices.astype(np.float32), GL_STATIC_DRAW)
 
-        if self.get_color_mode() == ColorMode.UNIFORM:
-            self.color_buffer = None
-        elif self.get_color_mode() == ColorMode.VERTEX_COLOR:
+        if self.mesh.color is not None:
             glBindBuffer(GL_ARRAY_BUFFER, self.color_buffer)
             glBufferData(GL_ARRAY_BUFFER, self.mesh.color.astype(np.float32), GL_STATIC_DRAW)
-        elif self.get_color_mode() == ColorMode.UV:
-            glBindBuffer(GL_ARRAY_BUFFER, self.uv_buffer)
-            glBufferData(GL_ARRAY_BUFFER, self.mesh.uv.astype(np.float32), GL_STATIC_DRAW)
+        else:
+            self.color_buffer = None
+
         glBindBuffer(GL_ARRAY_BUFFER, self.normal_buffer)
         glBufferData(GL_ARRAY_BUFFER, self.mesh.normals.astype(np.float32), GL_STATIC_DRAW)
 
@@ -97,13 +79,8 @@ class VisObject(Renderable):
 
     def load_object(self):
         self.vertex_buffer = glGenBuffers(1)
-        self.normal_buffer = glGenBuffers(1)
-        self.indices_buffer = glGenBuffers(1)
         self.color_buffer = glGenBuffers(1)
-        self.uv_buffer = glGenBuffers(1)
         self.load_vbos()
-        if self.material.is_texture:
-            self.material.load_vbos()
 
     def render(self, projection_matrix, view_matrix, camera_position, light):
         if light is None or not light:
@@ -121,37 +98,27 @@ class VisObject(Renderable):
         glUniform1fv(self.object_glossiness_id, 1, self.material.glossiness)
         glUniform3fv(self.light_pos_id, 1, light.position)
         glUniform3fv(self.light_color_id, 1, light.color)
-        glUniformMatrix4fv(self.object_transformation_id, 1, GL_FALSE,
-                           self.mesh.transformation.T)
-
         glEnableVertexAttribArray(0)
         glBindBuffer(GL_ARRAY_BUFFER, self.vertex_buffer)
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, None)
 
-        if self.get_color_mode() == ColorMode.VERTEX_COLOR:
+        if self.color_buffer is not None:
             glEnableVertexAttribArray(1)
             glBindBuffer(GL_ARRAY_BUFFER, self.color_buffer)
             glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, None)
-        elif self.get_color_mode() == ColorMode.UV:
-            glEnableVertexAttribArray(1)
-            glBindBuffer(GL_ARRAY_BUFFER, self.uv_buffer)
-            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, None)
-            glActiveTexture(GL_TEXTURE0)
-            glBindTexture(GL_TEXTURE_2D, self.material.texture_id)
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, self.material.diffuse.shape[1], self.material.diffuse.shape[1],
-                         0, GL_RGB, GL_UNSIGNED_BYTE, self.material.diffuse.astype(np.uint8))
-            glUniform1i(self.TextureID, 0)
-            # glUniform1i(self.context.TextureID, 0)
 
         glEnableVertexAttribArray(2)
         glBindBuffer(GL_ARRAY_BUFFER, self.normal_buffer)
         glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, None)
+        glUniformMatrix4fv(self.object_transformation_id, 1, GL_FALSE,
+                           self.mesh.transformation.T)
+
+        # glDrawArrays(GL_TRIANGLES, 0, self.vertexLen)
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.indices_buffer)
         glDrawElements(
             GL_TRIANGLES,  # mode
             len(self.mesh.triangle_indices) * 3,  # // count
-            # TODO: check bigger type
             GL_UNSIGNED_SHORT,  # // type
             None  # // element array buffer offset
         )

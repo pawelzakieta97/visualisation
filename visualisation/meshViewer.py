@@ -43,10 +43,11 @@ class MeshViewWindow(GlutWindow):
         glEnable(GL_DEPTH_TEST)
         #glEnable(GL_CULL_FACE)
 
-    def add_object(self, model: Union[Renderable, Any]):
+    def add_object(self, model: Union[Renderable, Any], *args, **kwargs):
         if not isinstance(model, Renderable):
-            model = get_renderable(model)
+            model = get_renderable(model, *args, **kwargs)
         self.vis_objects.append(model)
+        return model
 
     def update_projection_matrix(self, width=0, height=0):
         

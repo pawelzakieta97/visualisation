@@ -7,7 +7,7 @@ from transformations import get_rotation_matrix_x, get_translation_matrix
 
 class Mesh:
     def __init__(self, vertices: np.array, triangle_indices: np.array = None,
-                 color: np.array = None, normals=None):
+                 color: np.array = None, normals=None, uv: np.array = None):
         if vertices.shape[1] == 2:
             vertices = np.concatenate((vertices, np.zeros((vertices.shape[0], 1))), axis=1)
         if triangle_indices is None:
@@ -15,6 +15,7 @@ class Mesh:
 
         self.triangle_indices = triangle_indices
         self.color: np.array = color
+        self.uv = uv
         self.vertices = vertices
         if normals is None:
             normals = self.get_normals()
@@ -26,9 +27,10 @@ class Mesh:
 
     def copy(self):
         color = self.color.copy() if self.color is not None else None
+        uv = self.uv.copy() if self.uv is not None else None
         return Mesh(vertices=self.vertices.copy(),
                     triangle_indices=self.triangle_indices.copy(),
-                    color=color, normals=self.normals)
+                    color=color, normals=self.normals, uv=uv)
 
     def flip_normals(self):
         self.triangle_indices[:, [0,1]] = self.triangle_indices[:, [1,0]]
