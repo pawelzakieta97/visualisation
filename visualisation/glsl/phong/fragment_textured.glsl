@@ -42,7 +42,4 @@ void main(){
 	else specular_factor = pow(clamp(dot(p2l, normalize(r)), 0, 1), glossinessMultiplier) * glossinessMultiplier * 0.2;
 
 	color += specular_factor * lightColor * objectReflectiveness;
-	color = objectDiffuse;
-//	color[0] = UV[0];
-//	color[1] = UV[1];
 	}

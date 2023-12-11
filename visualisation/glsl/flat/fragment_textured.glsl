@@ -10,6 +10,6 @@ uniform sampler2D myTextureSampler;
 
 void main(){
 	color = texture(myTextureSampler, UV).rgb;
-	color[0] = UV[0];
-	color[1] = UV[1];
+//	color[0] = UV[0];
+//	color[1] = UV[1];
 	}
