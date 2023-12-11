@@ -17,8 +17,8 @@ class Wireframe(Renderable):
 
     def load_shader(self):
         self.shader = Shader()
-        self.shader.initShaderFromGLSL([f"{self.SHADER_DIRECTORY}/lines/vertex_vc.glsl"],
-                                       [f"{self.SHADER_DIRECTORY}/lines/fragment_vc.glsl"])
+        self.shader.initShaderFromGLSL([f"{self.SHADER_DIRECTORY}/flat/vertex_vc.glsl"],
+                                       [f"{self.SHADER_DIRECTORY}/flat/fragment_vc.glsl"])
         self.MVP_ID = glGetUniformLocation(self.shader.program, "MVP")
 
     def load_vbos(self):
@@ -32,7 +32,7 @@ class Wireframe(Renderable):
 
     def load_object(self):
 
-        # print len(self.lines)
+        # print len(self.flat)
         self.vertex_buffer = glGenBuffers(1)
         self.color_buffer = glGenBuffers(1)
         self.load_vbos()

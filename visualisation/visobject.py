@@ -5,7 +5,7 @@ from OpenGL.GL import *  # pylint: disable=W0614
 
 from transformations import get_translation_matrix
 from visualisation.light import Light
-from visualisation.material import Material
+from visualisation.material import Material, Texture
 from visualisation.renderable import Renderable
 from visualisation.shader import Shader
 
@@ -45,7 +45,7 @@ class VisObject(Renderable):
         self.material = material
 
     def get_color_mode(self):
-        if np.ndim(self.material.diffuse) > 2:
+        if isinstance(self.material.diffuse, Texture):
             return ColorMode.UV
         elif np.ndim(self.mesh.color) == 2:
             return ColorMode.VERTEX_COLOR
@@ -102,8 +102,7 @@ class VisObject(Renderable):
         self.color_buffer = glGenBuffers(1)
         self.uv_buffer = glGenBuffers(1)
         self.load_vbos()
-        if self.material.is_texture:
-            self.material.load_vbos()
+        self.material.load()
 
     def render(self, projection_matrix, view_matrix, camera_position, light):
         if light is None or not light:
@@ -116,7 +115,8 @@ class VisObject(Renderable):
 
         # camera_position = np.array(camera_position)
         glUniform3fv(self.camera_pos_id, 1, camera_position)
-        glUniform3fv(self.object_diffuse_id, 1, self.material.diffuse)
+        if not isinstance(self.material.diffuse, Texture):
+            glUniform3fv(self.object_diffuse_id, 1, self.material.diffuse)
         glUniform3fv(self.object_reflectiveness_id, 1, self.material.reflectiveness)
         glUniform1fv(self.object_glossiness_id, 1, self.material.glossiness)
         glUniform3fv(self.light_pos_id, 1, light.position)
@@ -137,9 +137,13 @@ class VisObject(Renderable):
             glBindBuffer(GL_ARRAY_BUFFER, self.uv_buffer)
             glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, None)
             glActiveTexture(GL_TEXTURE0)
-            glBindTexture(GL_TEXTURE_2D, self.material.texture_id)
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, self.material.diffuse.shape[1], self.material.diffuse.shape[1],
-                         0, GL_RGB, GL_UNSIGNED_BYTE, self.material.diffuse.astype(np.uint8))
+            glBindTexture(GL_TEXTURE_2D, self.material.diffuse.texture_id)
+
+            imgData = self.material.diffuse.data.astype(np.uint8)
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, self.material.diffuse.data.shape[1],
+                         self.material.diffuse.data.shape[0],
+                         0, GL_RGB, GL_UNSIGNED_BYTE, imgData)
+
             glUniform1i(self.TextureID, 0)
             # glUniform1i(self.context.TextureID, 0)
 
