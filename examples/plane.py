@@ -19,5 +19,5 @@ if __name__ == "__main__":
                               [1, 1],
                               [0, 1]]))
     plane = win.add_object(plane)
-    plane.material = Material(diffuse=image_data.astype(np.uint8))
+    plane.material = Material(diffuse=np.zeros(3), reflectiveness=image_data.astype(np.uint8))
     win.run()

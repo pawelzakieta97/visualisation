@@ -23,6 +23,9 @@ class VisObject(Renderable):
 
 
     def __init__(self, mesh: Mesh, material: Material = None):
+        self.diffuse_sampler_id = None
+        self.reflectiveness_sampler_id = None
+        self.glossiness_sampler_id = None
         if material is None:
             material = Material()
         super().__init__(material=material)
@@ -45,7 +48,8 @@ class VisObject(Renderable):
         self.material = material
 
     def get_color_mode(self):
-        if isinstance(self.material.diffuse, Texture):
+        if any([isinstance(feature, Texture) for
+                feature in [self.material.diffuse, self.material.glossiness, self.material.reflectiveness]]):
             return ColorMode.UV
         elif np.ndim(self.mesh.color) == 2:
             return ColorMode.VERTEX_COLOR
@@ -65,7 +69,7 @@ class VisObject(Renderable):
         elif self.get_color_mode() == ColorMode.UV:
             self.shader.initShaderFromGLSL(
                 [f"{self.SHADER_DIRECTORY}/phong/vertex_textured.glsl"],
-                [f"{self.SHADER_DIRECTORY}/phong/fragment_textured.glsl"])
+                [f"{self.SHADER_DIRECTORY}/phong/fragment_universal.glsl"])
         self.MVP_ID = glGetUniformLocation(self.shader.program, "MVP")
         self.camera_transformation_id = glGetUniformLocation(self.shader.program, "cameraTransformation")
         self.camera_pos_id = glGetUniformLocation(self.shader.program, "cameraPosition")
@@ -75,7 +79,9 @@ class VisObject(Renderable):
         self.object_transformation_id = glGetUniformLocation(self.shader.program, "objectTransformation")
         self.light_pos_id = glGetUniformLocation(self.shader.program, "lightPosition")
         self.light_color_id = glGetUniformLocation(self.shader.program, "lightColor")
-        self.TextureID = glGetUniformLocation(self.shader.program, "myTextureSampler")
+        self.diffuse_sampler_id = glGetUniformLocation(self.shader.program, "diffuse_sampler")
+        self.glossiness_sampler_id = glGetUniformLocation(self.shader.program, "glossiness_sampler")
+        self.reflectiveness_sampler_id = glGetUniformLocation(self.shader.program, "reflectiveness_sampler")
 
     def load_vbos(self):
         glBindBuffer(GL_ARRAY_BUFFER, self.vertex_buffer)
@@ -84,6 +90,7 @@ class VisObject(Renderable):
         if self.get_color_mode() == ColorMode.UNIFORM:
             self.color_buffer = None
         elif self.get_color_mode() == ColorMode.VERTEX_COLOR:
+            # TODO: drop per-vertex color support?
             glBindBuffer(GL_ARRAY_BUFFER, self.color_buffer)
             glBufferData(GL_ARRAY_BUFFER, self.mesh.color.astype(np.float32), GL_STATIC_DRAW)
         elif self.get_color_mode() == ColorMode.UV:
@@ -115,10 +122,15 @@ class VisObject(Renderable):
 
         # camera_position = np.array(camera_position)
         glUniform3fv(self.camera_pos_id, 1, camera_position)
-        if not isinstance(self.material.diffuse, Texture):
+
+        if isinstance(self.material.diffuse, Texture):
+            glUniform3fv(self.object_diffuse_id, 1, np.array([-1, -1, -1]))
+        else:
             glUniform3fv(self.object_diffuse_id, 1, self.material.diffuse)
-        glUniform3fv(self.object_reflectiveness_id, 1, self.material.reflectiveness)
-        glUniform1fv(self.object_glossiness_id, 1, self.material.glossiness)
+
+        glUniform3fv(self.object_diffuse_id, 1, self.material.diffuse if not isinstance(self.material.diffuse, Texture) else np.array([-1, -1, -1]))
+        glUniform3fv(self.object_reflectiveness_id, 1, self.material.reflectiveness if not isinstance(self.material.reflectiveness, Texture) else np.array([-1, -1, -1]))
+        glUniform1fv(self.object_glossiness_id, 1, self.material.glossiness if not isinstance(self.material.glossiness, Texture) else -1)
         glUniform3fv(self.light_pos_id, 1, light.position)
         glUniform3fv(self.light_color_id, 1, light.color)
         glUniformMatrix4fv(self.object_transformation_id, 1, GL_FALSE,
@@ -136,15 +148,21 @@ class VisObject(Renderable):
             glEnableVertexAttribArray(1)
             glBindBuffer(GL_ARRAY_BUFFER, self.uv_buffer)
             glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, None)
-            glActiveTexture(GL_TEXTURE0)
-            glBindTexture(GL_TEXTURE_2D, self.material.diffuse.texture_id)
 
-            imgData = self.material.diffuse.data.astype(np.uint8)
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, self.material.diffuse.data.shape[1],
-                         self.material.diffuse.data.shape[0],
-                         0, GL_RGB, GL_UNSIGNED_BYTE, imgData)
+            if isinstance(self.material.diffuse, Texture):
+                glActiveTexture(GL_TEXTURE0)
+                glBindTexture(GL_TEXTURE_2D, self.material.diffuse.texture_id)
+                glUniform1i(self.diffuse_sampler_id, 0)
 
-            glUniform1i(self.TextureID, 0)
+            if isinstance(self.material.reflectiveness, Texture):
+                glActiveTexture(GL_TEXTURE1)
+                glBindTexture(GL_TEXTURE_2D, self.material.reflectiveness.texture_id)
+                glUniform1i(self.reflectiveness_sampler_id, 1)
+
+            if isinstance(self.material.glossiness, Texture):
+                glActiveTexture(GL_TEXTURE2)
+                glBindTexture(GL_TEXTURE_2D, self.material.glossiness.texture_id)
+                glUniform1i(self.glossiness_sampler_id, 2)
             # glUniform1i(self.context.TextureID, 0)
 
         glEnableVertexAttribArray(2)
