@@ -15,6 +15,7 @@ from visualisation.renderable_factory import get_renderable
 
 class MeshViewWindow(GlutWindow):
     def __init__(self, light: Light = None, add_floorgrid=False, orthographic=False,
+                 enable_control: bool = True,
                  **kwargs):
 
         super().__init__(**kwargs)
@@ -23,7 +24,7 @@ class MeshViewWindow(GlutWindow):
         self.menu = None
         self.vis_objects = []
         self.light = light
-        self.controller = MVPController(orthographic=orthographic)
+        self.controller = MVPController(orthographic=orthographic, enable_control=enable_control)
         if add_floorgrid:
             floor_model = FloorGrid()
             self.add_object(floor_model)

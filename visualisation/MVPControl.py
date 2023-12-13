@@ -80,16 +80,19 @@ class MVPControl:
 
 class MVPController(MVPControl):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, enable_control=True, *args, **kwargs):
         MVPControl.__init__(self, *args, **kwargs)
         self.mouse_mode = -1
         self.lastX = 0
         self.lastY = 0
+        self.enable_control = enable_control
 
     def on_special_key(self, key, x, y):
         print(key)
 
     def on_keyboard(self, keyboard_state, dt):
+        if not self.enable_control:
+            return
         if not keyboard_state:
             return
         speed = self.speed
@@ -115,6 +118,8 @@ class MVPController(MVPControl):
             self.move_up(speed * dt)
 
     def on_mouse(self, *args, **kwargs):
+        if not self.enable_control:
+            return
         (key, Up, x, y) = args
         if (key == 0) & (Up == 0):
             self.lastX = x
@@ -135,6 +140,8 @@ class MVPController(MVPControl):
         # print "please overrider on_mousemove" ,args
 
     def on_mousemove(self, *args, **kwargs):
+        if not self.enable_control:
+            return
         deltaX = self.lastX - args[0]
         deltaY = self.lastY - args[1]
         if self.mouse_mode == 1:
