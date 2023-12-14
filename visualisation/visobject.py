@@ -79,9 +79,9 @@ class VisObject(Renderable):
         self.object_transformation_id = glGetUniformLocation(self.shader.program, "objectTransformation")
         self.light_pos_id = glGetUniformLocation(self.shader.program, "lightPosition")
         self.light_color_id = glGetUniformLocation(self.shader.program, "lightColor")
-        self.diffuse_sampler_id = glGetUniformLocation(self.shader.program, "diffuse_sampler")
-        self.glossiness_sampler_id = glGetUniformLocation(self.shader.program, "glossiness_sampler")
-        self.reflectiveness_sampler_id = glGetUniformLocation(self.shader.program, "reflectiveness_sampler")
+        self.diffuse_sampler_id = glGetUniformLocation(self.shader.program, "diffuseSampler")
+        self.glossiness_sampler_id = glGetUniformLocation(self.shader.program, "glossinessSampler")
+        self.reflectiveness_sampler_id = glGetUniformLocation(self.shader.program, "reflectivenessSampler")
 
     def load_vbos(self):
         glBindBuffer(GL_ARRAY_BUFFER, self.vertex_buffer)

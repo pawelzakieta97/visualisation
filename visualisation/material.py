@@ -26,13 +26,14 @@ class Material:
 
 class Texture:
     def __init__(self, data: np.array, texture_interpolation=None):
-        self.texture_id = glGenTextures(1)
+        self.texture_id = None
         self.data = data
         if texture_interpolation is None:
             texture_interpolation = GL_LINEAR
         self.texture_interpolation = texture_interpolation
 
     def load(self):
+        self.texture_id = glGenTextures(1)
         glBindTexture(GL_TEXTURE_2D, self.texture_id)
         imgData = self.data.astype(np.uint8)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, self.texture_interpolation)
@@ -43,5 +44,5 @@ class Texture:
                          0, GL_RGB, GL_UNSIGNED_BYTE, imgData)
         elif np.ndim(self.data) == 2:
             # grayscale
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, self.data.shape[1], self.data.shape[0],
-                         0, GL_LUMINANCE, GL_UNSIGNED_BYTE, imgData)
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, self.data.shape[1], self.data.shape[0],
+                         0, GL_RED, GL_UNSIGNED_BYTE, imgData)

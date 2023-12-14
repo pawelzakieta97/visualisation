@@ -38,7 +38,7 @@ void main(){
 	float glossiness = objectGlossiness;
 	if (diffuse[0] < 0) diffuse = texture(diffuseSampler, UV).rgb;
 	if (reflectiveness[0] < 0) reflectiveness = texture(reflectivenessSampler, UV).rgb;
-//	if (glossiness < 0) glossiness = texture(glossinessSampler, UV);
+	if (glossiness < 0) glossiness = texture(glossinessSampler, UV).r;
 
 	color += diffuse * ambient;
 	// DIFFUSE
