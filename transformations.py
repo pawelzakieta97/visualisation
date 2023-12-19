@@ -15,29 +15,29 @@ def get_scale_matrix(sx=1, sy=1, sz=1, scale=None):
     t = np.eye(4)
     if scale is None:
         scale = [sx, sy, sz]
-    t[[0,1,2], [0,1,2]] = scale
+    t[[0, 1, 2], [0, 1, 2]] = scale
     return t
 
 
 def get_rotation_matrix_x(angle):
-    return np.array([[1, 0,             0,              0],
+    return np.array([[1, 0, 0, 0],
                      [0, np.cos(angle), -np.sin(angle), 0],
-                     [0, np.sin(angle), np.cos(angle),  0],
-                     [0, 0,             0,              1]])
+                     [0, np.sin(angle), np.cos(angle), 0],
+                     [0, 0, 0, 1]])
 
 
 def get_rotation_matrix_y(angle):
-    return np.array([[np.cos(angle),    0, np.sin(angle),   0],
-                     [0,                1, 0,               0],
-                     [-np.sin(angle),   0, np.cos(angle),   0],
-                     [0,                0, 0,               1]])
+    return np.array([[np.cos(angle), 0, np.sin(angle), 0],
+                     [0, 1, 0, 0],
+                     [-np.sin(angle), 0, np.cos(angle), 0],
+                     [0, 0, 0, 1]])
 
 
 def get_rotation_matrix_z(angle):
-    return np.array([[np.cos(angle),    -np.sin(angle), 0, 0],
-                     [np.sin(angle),    np.cos(angle),  0, 0],
-                     [0,                0,              1, 0],
-                     [0,                0,              0, 1]])
+    return np.array([[np.cos(angle), -np.sin(angle), 0, 0],
+                     [np.sin(angle), np.cos(angle), 0, 0],
+                     [0, 0, 1, 0],
+                     [0, 0, 0, 1]])
 
 
 def look_at(position: np.array, target: np.array = None, yaw: float = None,
@@ -64,23 +64,30 @@ def look_at(position: np.array, target: np.array = None, yaw: float = None,
 
 
 def get_perspective_projection_matrix(fov, aspect_ratio, near=0.1, far=1000, zoom=1):
-    projection_matrix = np.zeros((4,4))
-    S = 1 / np.tan(fov/2) * zoom
+    projection_matrix = np.zeros((4, 4))
+    S = 1 / np.tan(fov / 2) * zoom
     projection_matrix[1, 1] = S
     projection_matrix[0, 0] = S / aspect_ratio
-    projection_matrix[2, 2] = - (far+near) / (far - near)
+    projection_matrix[2, 2] = - (far + near) / (far - near)
     projection_matrix[3, 2] = -1
     projection_matrix[2, 3] = - (2 * far * near) / (far - near)
     return projection_matrix
 
 
 def get_orthographic_projection_matrix(scale, aspect_ratio, near=0.1, far=1000):
-    orthogonal_matrix = np.zeros((4,4))
+    orthogonal_matrix = np.zeros((4, 4))
     orthogonal_matrix[1, 1] = scale * far
     orthogonal_matrix[0, 0] = scale / aspect_ratio * far
     orthogonal_matrix[2, 2] = - 1
     orthogonal_matrix[3, 3] = far
     return orthogonal_matrix
+
+
+def levels(image: np.array, low: float = 0, high: float = 1):
+    result = image * (high - low) + low * 255
+    result[result<0] = 0
+    result[result>255] = 255
+    return result
 
 
 if __name__ == '__main__':

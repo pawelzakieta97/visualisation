@@ -7,7 +7,7 @@ from visualisation.wireframe import Wireframe
 
 if __name__ == "__main__":
     length = 10
-    count = 100
+    count = 10
     pos = np.zeros((count, 3))
     pos[:, 0] = np.linspace(0, 1, count) * length
     # pos[:, 1] = np.arange(count) % 2

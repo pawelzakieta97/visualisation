@@ -15,6 +15,12 @@ class Wireframe(Renderable):
         self.color_buffer = None
         self.model = model
 
+    def load(self):
+        self.vertex_buffer = glGenBuffers(1)
+        self.color_buffer = glGenBuffers(1)
+        self.load_shader()
+        self.load_vbos()
+
     def load_shader(self):
         self.shader = Shader()
         self.shader.initShaderFromGLSL([f"{self.SHADER_DIRECTORY}/flat/vertex_vc.glsl"],
@@ -30,12 +36,6 @@ class Wireframe(Renderable):
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, self.model.colors.astype(np.float32).flatten(),
                      GL_STATIC_DRAW)
 
-    def load_object(self):
-
-        # print len(self.flat)
-        self.vertex_buffer = glGenBuffers(1)
-        self.color_buffer = glGenBuffers(1)
-        self.load_vbos()
 
     def render(self, projection_matrix, view_matrix, camera_position, lights):
         if self.model.changed:

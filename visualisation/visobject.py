@@ -21,11 +21,11 @@ class ColorMode(Enum):
 
 class VisObject(Renderable):
 
-
     def __init__(self, mesh: Mesh, material: Material = None):
         self.diffuse_sampler_id = None
         self.reflectiveness_sampler_id = None
         self.glossiness_sampler_id = None
+        self.depth_sampler_id = None
         if material is None:
             material = Material()
         super().__init__(material=material)
@@ -43,6 +43,7 @@ class VisObject(Renderable):
         self.MVP_ID = None
         self.object_transformation_id = None
         self.camera_transformation_id = None
+        self.light_transformation_id = None
         self.shader = None
         self.mesh = mesh
         self.material = material
@@ -77,11 +78,13 @@ class VisObject(Renderable):
         self.object_reflectiveness_id = glGetUniformLocation(self.shader.program, "objectReflectiveness")
         self.object_glossiness_id = glGetUniformLocation(self.shader.program, "objectGlossiness")
         self.object_transformation_id = glGetUniformLocation(self.shader.program, "objectTransformation")
+        self.light_transformation_id = glGetUniformLocation(self.shader.program, "lightTransformation")
         self.light_pos_id = glGetUniformLocation(self.shader.program, "lightPosition")
         self.light_color_id = glGetUniformLocation(self.shader.program, "lightColor")
         self.diffuse_sampler_id = glGetUniformLocation(self.shader.program, "diffuseSampler")
         self.glossiness_sampler_id = glGetUniformLocation(self.shader.program, "glossinessSampler")
         self.reflectiveness_sampler_id = glGetUniformLocation(self.shader.program, "reflectivenessSampler")
+        self.depth_sampler_id = glGetUniformLocation(self.shader.program, "depthSampler")
 
     def load_vbos(self):
         glBindBuffer(GL_ARRAY_BUFFER, self.vertex_buffer)
@@ -102,18 +105,17 @@ class VisObject(Renderable):
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.indices_buffer)
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, self.mesh.triangle_indices.astype(np.uint16), GL_STATIC_DRAW)
 
-    def load_object(self):
+    def load(self):
         self.vertex_buffer = glGenBuffers(1)
         self.normal_buffer = glGenBuffers(1)
         self.indices_buffer = glGenBuffers(1)
         self.color_buffer = glGenBuffers(1)
         self.uv_buffer = glGenBuffers(1)
+        self.load_shader()
         self.load_vbos()
         self.material.load()
 
-    def render(self, projection_matrix, view_matrix, camera_position, light):
-        if light is None or not light:
-            light = Light(position=np.array([-5, 10, -7]), color=np.array([1, 1, 1]))
+    def render(self, projection_matrix, view_matrix, camera_position, light: Light):
         if self.mesh.changed:
             self.load_vbos()
             self.mesh.changed = False
@@ -164,7 +166,12 @@ class VisObject(Renderable):
                 glBindTexture(GL_TEXTURE_2D, self.material.glossiness.texture_id)
                 glUniform1i(self.glossiness_sampler_id, 2)
             # glUniform1i(self.context.TextureID, 0)
-
+        if light.cast_shadows:
+            glActiveTexture(GL_TEXTURE3)
+            glBindTexture(GL_TEXTURE_2D, light.depth_map)
+            glUniform1i(self.depth_sampler_id, 3)
+            glUniformMatrix4fv(self.light_transformation_id, 1, GL_FALSE,
+                               light.get_transformation_matrix().T)
         glEnableVertexAttribArray(2)
         glBindBuffer(GL_ARRAY_BUFFER, self.normal_buffer)
         glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, None)
