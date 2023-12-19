@@ -42,3 +42,4 @@ class Cube(Mesh):
         super().__init__(vertices, triangle_indices)
         if not smooth:
             self.flatten()
+        self.uv = np.zeros((self.vertices.shape[0], self.vertices.shape[1]))

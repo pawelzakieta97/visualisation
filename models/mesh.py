@@ -153,6 +153,10 @@ class Mesh:
         self.changed = True
         pass
 
+    def set_position(self, position):
+        self.transformation[:3, 3] = np.array(position)
+        self.changed = True
+
 
 
 def get_rect(segments_x, segments_y, seg_size):

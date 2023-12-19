@@ -50,7 +50,7 @@ def get_icosahedron():
 
 class Sphere(Mesh):
     def __init__(self, radius: float = 1.0, smoothness=1,
-                 smooth=True):
+                 smooth=True, init_uv=False):
         vertices, triangles = get_icosahedron()
         super().__init__(vertices, triangles)
         self.flip_normals()
@@ -62,4 +62,11 @@ class Sphere(Mesh):
         if not smooth:
             self.flatten()
         self.normals = self.get_normals()
+        if init_uv:
+            self.init_uv()
         pass
+
+    def init_uv(self):
+        pitch = np.arcsin(self.vertices[:, 1])[:, None]
+        yaw = np.arctan2(self.vertices[:, 0], self.vertices[:, 2])[:, None]
+        self.uv = np.hstack((pitch/ np.pi + 0.5, yaw/np.pi/ 2 + 0.5))
