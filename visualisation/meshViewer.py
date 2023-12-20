@@ -96,7 +96,7 @@ class MeshViewWindow(GlutWindow):
         mvp = self.light.get_transformation_matrix()
         # mvp = self.controller.get_projection_matrix() @ np.linalg.inv(self.controller.get_view_matrix())
         glUniformMatrix4fv(self.MVP_ID, 1, GL_FALSE, mvp.T)
-
+        # TODO: faster to merge objects to render with fewer calls??
         for vis_obj in self.vis_objects:
             glUniformMatrix4fv(self.object_transformation_id, 1, GL_FALSE,
                                vis_obj.mesh.transformation.T)
@@ -116,6 +116,8 @@ class MeshViewWindow(GlutWindow):
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
         self.depth_shader.end()
+
+
 
     def ogl_draw(self):
         self.update_projection_matrix()
@@ -145,9 +147,10 @@ class MeshViewWindow(GlutWindow):
             self.controller.orthographic = True
         return 0
 
-    def run(self):
+    def run(self, tick_func=None):
+        self.tick_func = tick_func
         self.init_opengl()
         for obj in self.vis_objects:
             obj.load()
         self.light.load()
-        super().run()
+        super().run(tick_func)

@@ -23,12 +23,13 @@ if __name__ == "__main__":
                               [1, 1],
                               [0, 1]]))
     sphere = Sphere(smoothness=4)
-    cube = Cube()
+    for i in range(100):
+        cube = Cube()
+        cube.transform(get_translation_matrix(dy=0, dx=i))
+        cube_obj = win.add_object(cube)
     sphere.transform(get_translation_matrix(dy=2, dx=0))
-    cube.transform(get_translation_matrix(dy=0, dx=3))
     plane = win.add_object(plane)
     sphere_obj = win.add_object(sphere)
-    cube_obj = win.add_object(cube)
 
     glossiness = levels(image_data.mean(axis=2), low=0.1, high=1)
     diffuse = levels(image_data, high=0.5)
@@ -40,13 +41,6 @@ if __name__ == "__main__":
                               # glossiness=glossiness,
                               # glossiness=(np.random.random((10, 10))*255).astype(np.uint8))
                               )
-    cube_obj.material = Material(diffuse=diffuse,
-                                 reflectiveness=reflectiveness,
-                                 glossiness=glossiness,
-                                 # reflectiveness=reflectiveness,
-                                 # glossiness=glossiness,
-                                 # glossiness=(np.random.random((10, 10))*255).astype(np.uint8))
-                                 )
 
 
     def tick():

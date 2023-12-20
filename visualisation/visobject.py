@@ -103,7 +103,7 @@ class VisObject(Renderable):
         glBufferData(GL_ARRAY_BUFFER, self.mesh.normals.astype(np.float32), GL_STATIC_DRAW)
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.indices_buffer)
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, self.mesh.triangle_indices.astype(np.uint16), GL_STATIC_DRAW)
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, self.mesh.triangle_indices.astype(np.uint32), GL_STATIC_DRAW)
 
     def load(self):
         self.vertex_buffer = glGenBuffers(1)
@@ -181,7 +181,7 @@ class VisObject(Renderable):
             GL_TRIANGLES,  # mode
             len(self.mesh.triangle_indices) * 3,  # // count
             # TODO: check bigger type
-            GL_UNSIGNED_SHORT,  # // type
+            GL_UNSIGNED_INT,  # // type
             None  # // element array buffer offset
         )
 
