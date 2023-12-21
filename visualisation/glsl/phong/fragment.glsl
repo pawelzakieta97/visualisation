@@ -18,10 +18,6 @@ uniform vec3 cameraPosition;
 //uniform float ambient = 0.2;
 
 void main(){
-
-	// Output color = color specified in the vertex shader, 
-	// interpolated between all 3 surrounding vertices
-//	color = normal_worldspace;
 	vec3 nnormal_worldspace = normalize(normal_worldspace);
 	vec3 c2p = position_worldspace - cameraPosition;
 	c2p = normalize(c2p);

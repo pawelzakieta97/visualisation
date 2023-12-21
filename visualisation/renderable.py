@@ -16,7 +16,7 @@ class Renderable(object):
     def load(self):
         pass
 
-    def render(self, projection_matrix, view_matrix, camera_position, light):
+    def render(self, mvp, camera_position, light):
         print("override rendering process")
         pass
 
@@ -26,9 +26,9 @@ class CompoundRenderable(Renderable):
         super().__init__()
         self.objects = objects
 
-    def render(self, projection_matrix, view_matrix, camera_position, light):
+    def render(self, mvp, camera_position, light):
         for obj in self.objects:
-            obj.render(projection_matrix, view_matrix, camera_position, light)
+            obj.render(mvp, camera_position, light)
 
     def load(self):
         for obj in self.objects:

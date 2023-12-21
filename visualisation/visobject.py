@@ -21,7 +21,7 @@ class ColorMode(Enum):
 
 class VisObject(Renderable):
 
-    def __init__(self, mesh: Mesh, material: Material = None):
+    def __init__(self, mesh: Mesh, material: Material = None, casts_shadows=True):
         self.diffuse_sampler_id = None
         self.reflectiveness_sampler_id = None
         self.glossiness_sampler_id = None
@@ -47,6 +47,7 @@ class VisObject(Renderable):
         self.shader = None
         self.mesh = mesh
         self.material = material
+        self.casts_shadows = casts_shadows
 
     def get_color_mode(self):
         if any([isinstance(feature, Texture) for
@@ -61,8 +62,8 @@ class VisObject(Renderable):
         self.shader = Shader()
         if self.get_color_mode() == ColorMode.UNIFORM:
             self.shader.initShaderFromGLSL(
-                [f"{self.SHADER_DIRECTORY}/phong/vertex.glsl"],
-                [f"{self.SHADER_DIRECTORY}/phong/fragment.glsl"])
+                [f"{self.SHADER_DIRECTORY}/phong/vertex_textured.glsl"],
+                [f"{self.SHADER_DIRECTORY}/phong/fragment_universal.glsl"])
         elif self.get_color_mode() == ColorMode.VERTEX_COLOR:
             self.shader.initShaderFromGLSL(
                 [f"{self.SHADER_DIRECTORY}/phong/vertex_vc.glsl"],
@@ -115,12 +116,12 @@ class VisObject(Renderable):
         self.load_vbos()
         self.material.load()
 
-    def render(self, projection_matrix, view_matrix, camera_position, light: Light):
+    def render(self, mvp, camera_position, light: Light):
         if self.mesh.changed:
             self.load_vbos()
             self.mesh.changed = False
         self.shader.begin()
-        glUniformMatrix4fv(self.MVP_ID, 1, GL_FALSE, (projection_matrix @ np.linalg.inv(view_matrix)).T)
+        glUniformMatrix4fv(self.MVP_ID, 1, GL_FALSE, mvp.T)
 
         # camera_position = np.array(camera_position)
         glUniform3fv(self.camera_pos_id, 1, camera_position)
@@ -130,6 +131,7 @@ class VisObject(Renderable):
         else:
             glUniform3fv(self.object_diffuse_id, 1, self.material.diffuse)
 
+        #TODO: PASS as a single Material, Light struct (possibly in a single call)
         glUniform3fv(self.object_diffuse_id, 1, self.material.diffuse if not isinstance(self.material.diffuse, Texture) else np.array([-1, -1, -1]))
         glUniform3fv(self.object_reflectiveness_id, 1, self.material.reflectiveness if not isinstance(self.material.reflectiveness, Texture) else np.array([-1, -1, -1]))
         glUniform1fv(self.object_glossiness_id, 1, self.material.glossiness if not isinstance(self.material.glossiness, Texture) else -1)

@@ -2,7 +2,8 @@ from typing import Sequence, Union
 
 import numpy as np
 
-from transformations import get_rotation_matrix_x, get_translation_matrix
+from transformations import get_rotation_matrix_x, get_translation_matrix, get_scale_matrix, get_rotation_matrix_y, \
+    get_rotation_matrix_z
 
 
 class Mesh:
@@ -153,10 +154,27 @@ class Mesh:
         self.changed = True
         pass
 
-    def set_position(self, position):
+    def set_position(self, x=None, y=None, z=None, position=None):
+        if position is None:
+            position = [x or self.transformation[0, 3],
+                        y or self.transformation[1, 3],
+                        z or self.transformation[2, 3]]
         self.transformation[:3, 3] = np.array(position)
-        self.changed = True
 
+    def scale(self, *args, **kwargs):
+        self.transform(get_scale_matrix(*args, **kwargs))
+
+    def translate(self, *args, **kwargs):
+        self.transform(get_translation_matrix(*args, **kwargs))
+
+    def rotate_x(self, *args, **kwargs):
+        self.transform(get_rotation_matrix_x(*args, **kwargs))
+
+    def rotate_y(self, *args, **kwargs):
+        self.transform(get_rotation_matrix_y(*args, **kwargs))
+
+    def rotate_z(self, *args, **kwargs):
+        self.transform(get_rotation_matrix_z(*args, **kwargs))
 
 
 def get_rect(segments_x, segments_y, seg_size):

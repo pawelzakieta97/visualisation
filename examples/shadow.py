@@ -2,6 +2,7 @@ import numpy as np
 
 from PIL import Image
 from models.mesh import Mesh
+from models.multi_mesh import merge_meshes
 from models.primitives.cube import Cube
 from models.primitives.sphere import Sphere
 from visualisation.material import Material
@@ -23,10 +24,15 @@ if __name__ == "__main__":
                               [1, 1],
                               [0, 1]]))
     sphere = Sphere(smoothness=4)
-    for i in range(100):
+    cubes = []
+    for i in range(500):
         cube = Cube()
-        cube.transform(get_translation_matrix(dy=0, dx=i))
-        cube_obj = win.add_object(cube)
+        cube.scale(scale=np.random.random(3))
+        cube.set_position(x=np.random.random()*20 - 10, z=np.random.random()*20 - 10)
+        cubes.append(cube)
+        win.add_object(cube)
+    merged_cubes = merge_meshes(cubes, as_mesh=True)
+    # cube_obj = win.add_object(merged_cubes)
     sphere.transform(get_translation_matrix(dy=2, dx=0))
     plane = win.add_object(plane)
     sphere_obj = win.add_object(sphere)
@@ -36,20 +42,15 @@ if __name__ == "__main__":
     reflectiveness = levels(image_data, low=0, high=0.4)
     plane.material = Material(diffuse=diffuse,
                               reflectiveness=reflectiveness,
-                              glossiness=glossiness,
-                              # reflectiveness=reflectiveness,
-                              # glossiness=glossiness,
-                              # glossiness=(np.random.random((10, 10))*255).astype(np.uint8))
+                              glossiness=glossiness
                               )
 
 
     def tick():
         tick.i += 1
-        sphere.set_position([2 * np.cos(tick.i / 20),
+        sphere.set_position(position=[2 * np.cos(tick.i / 20),
                              2,
-                             0])
-
+                             2 * np.sin(tick.i / 20)])
 
     tick.i = 0
-    win.tick_func = tick
-    win.run()
+    win.run(tick)
