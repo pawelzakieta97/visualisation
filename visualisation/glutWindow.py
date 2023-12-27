@@ -111,7 +111,8 @@ class GlutWindow:
             self.keyboard_state.remove(key)
 
     def run(self, tick_func=None):
-        self.tick_func = tick_func
+        if tick_func is not None:
+            self.tick_func = tick_func
         # self.timerCallback()
         oglut.glutMainLoop()
 

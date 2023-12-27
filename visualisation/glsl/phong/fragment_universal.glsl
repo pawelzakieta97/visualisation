@@ -3,7 +3,6 @@
 // Interpolated values from the vertex shaders
 in vec3 normal_worldspace;
 in vec3 position_worldspace;
-in vec3 cameraPos;
 in vec2 UV;
 
 // Ouput data

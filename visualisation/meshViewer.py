@@ -1,6 +1,4 @@
-import threading
-import time
-from typing import Any, Union
+from typing import Any, Union, Type
 
 import numpy as np
 from OpenGL.GL import *  # pylint: disable=W0614
@@ -12,8 +10,9 @@ from models.floorgrid import FloorGrid
 from visualisation.glutWindow import GlutWindow
 from visualisation.light import Light
 from visualisation.renderable import Renderable
-from visualisation.renderable_factory import get_renderable
+from visualisation.renderable_factory import get_renderable, DEFAULT_OBJECT_SHADERS
 from visualisation.shader import Shader
+from visualisation.shaders.stadard_shader import StandardShader
 from visualisation.visobject import VisObject
 
 
@@ -24,6 +23,7 @@ class MeshViewWindow(GlutWindow):
 
         super().__init__(**kwargs)
 
+        self.shaders = {}
         self.depth_buffer = None
         self.projection_matrix = None
         self.menu = None
@@ -36,10 +36,11 @@ class MeshViewWindow(GlutWindow):
         self.depth_shader = Shader()
         if add_floorgrid:
             floor_model = FloorGrid()
-            self.add_object(floor_model)
+            self.add_object(floor_model, )
         self.MVP_ID = None
         self.object_transformation_id = None
         self.camera_transformation_id = None
+        self.render_groups = {}
 
     def init_opengl(self):
         super().init_opengl()
@@ -65,11 +66,14 @@ class MeshViewWindow(GlutWindow):
         glDrawBuffer(GL_NONE)
         glReadBuffer(GL_NONE)
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
-        #glEnable(GL_CULL_FACE)
 
-    def add_object(self, model: Union[Renderable, Any], *args, **kwargs):
+    def add_object(self, model: Union[Renderable, Any],
+                   shader_cls: Type[Shader] = None, *args, **kwargs):
         if not isinstance(model, Renderable):
-            model = get_renderable(model, *args, **kwargs)
+            model = get_renderable(model, *args, **kwargs, shader_cls=shader_cls)
+        if shader_cls is None:
+            shader_cls = DEFAULT_OBJECT_SHADERS[type(model)]
+        model.shader_cls = shader_cls
         self.vis_objects.append(model)
         return model
 
@@ -116,9 +120,23 @@ class MeshViewWindow(GlutWindow):
                 GL_UNSIGNED_INT,  # // type
                 None  # // element array buffer offset
             )
-
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
         self.depth_shader.end()
+
+    def get_render_groups(self) -> dict:
+        render_groups = {}
+        for obj in self.vis_objects:
+            if obj.shader_cls in render_groups:
+                render_groups[obj.shader_cls].append(obj)
+            else:
+                render_groups[obj.shader_cls] = [obj]
+        for shader_cls in render_groups:
+            if shader_cls not in self.shaders:
+                shader = shader_cls()
+                shader.load()
+                self.shaders[shader_cls] = shader
+
+        return {self.shaders[shader_cls]: render_groups[shader_cls] for shader_cls in render_groups.keys()}
 
     def ogl_draw(self):
         self.update_projection_matrix()
@@ -127,14 +145,14 @@ class MeshViewWindow(GlutWindow):
             pass
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glViewport(0, 0, self.width, self.height)
-        pm = self.controller.get_projection_matrix()
-        vm = self.controller.get_view_matrix()
-        mvp = pm @ np.linalg.inv(vm)
-        for mesh in self.vis_objects:
-            mesh.render(mvp, self.controller.get_pos(), self.light)
-            pass
-            # mesh.render(self.controller.projection_matrix, self.controller.view_matrix, self.controller.pos, None)
-            
+        projection = self.controller.get_projection_matrix()
+        view = self.controller.get_view_matrix()
+        projection_view_matrix = projection @ np.linalg.inv(view)
+        render_groups = self.get_render_groups()
+        for shader, objects in render_groups.items():
+            shader.render(objects, [self.light],
+                          projection_view_matrix, self.controller.pos)
+
     def processMenuEvents(self, *args, **kwargs):
         action, = args
         if action == 3:
@@ -150,7 +168,6 @@ class MeshViewWindow(GlutWindow):
         return 0
 
     def run(self, tick_func=None):
-        self.tick_func = tick_func
         self.init_opengl()
         for obj in self.vis_objects:
             obj.load()

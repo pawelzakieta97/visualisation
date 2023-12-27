@@ -23,9 +23,9 @@ class Map(VisObject):
         super().__init__(mesh, material=Material(diffuse=data, texture_interpolation=GL_NEAREST))
         self.auto_reload = auto_reload
 
-    def render(self, mvp, camera_position, light):
+    def render(self, projection_view_matrix, camera_position, light):
         self.shader.begin()
-        glUniformMatrix4fv(self.MVP_ID, 1, GL_FALSE, mvp.T)
+        glUniformMatrix4fv(self.MVP_ID, 1, GL_FALSE, projection_view_matrix.T)
 
         glUniformMatrix4fv(self.object_transformation_id, 1, GL_FALSE,
                            self.mesh.transformation.T)

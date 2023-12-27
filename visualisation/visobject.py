@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Type
 
 import numpy as np
 from OpenGL.GL import *  # pylint: disable=W0614
@@ -21,14 +22,14 @@ class ColorMode(Enum):
 
 class VisObject(Renderable):
 
-    def __init__(self, mesh: Mesh, material: Material = None, casts_shadows=True):
+    def __init__(self, mesh: Mesh, material: Material = None, casts_shadows=True, shader_cls: Type[Shader] = None):
         self.diffuse_sampler_id = None
         self.reflectiveness_sampler_id = None
         self.glossiness_sampler_id = None
         self.depth_sampler_id = None
         if material is None:
             material = Material()
-        super().__init__(material=material)
+        super().__init__(material=material, shader_cls=shader_cls)
         self.indices_buffer = None
         self.normal_buffer = None
         self.vertex_buffer = None
@@ -72,7 +73,7 @@ class VisObject(Renderable):
             self.shader.initShaderFromGLSL(
                 [f"{self.SHADER_DIRECTORY}/phong/vertex_textured.glsl"],
                 [f"{self.SHADER_DIRECTORY}/phong/fragment_universal.glsl"])
-        self.MVP_ID = glGetUniformLocation(self.shader.program, "MVP")
+        self.MVP_ID = glGetUniformLocation(self.shader.program, "projectionView")
         self.camera_transformation_id = glGetUniformLocation(self.shader.program, "cameraTransformation")
         self.camera_pos_id = glGetUniformLocation(self.shader.program, "cameraPosition")
         self.object_diffuse_id = glGetUniformLocation(self.shader.program, "objectDiffuse")
@@ -112,16 +113,16 @@ class VisObject(Renderable):
         self.indices_buffer = glGenBuffers(1)
         self.color_buffer = glGenBuffers(1)
         self.uv_buffer = glGenBuffers(1)
-        self.load_shader()
-        self.load_vbos()
+        # self.load_shader()
+        # self.load_vbos()
         self.material.load()
 
-    def render(self, mvp, camera_position, light: Light):
+    def render(self, projection_view_matrix, camera_position, light: Light):
         if self.mesh.changed:
             self.load_vbos()
             self.mesh.changed = False
         self.shader.begin()
-        glUniformMatrix4fv(self.MVP_ID, 1, GL_FALSE, mvp.T)
+        glUniformMatrix4fv(self.MVP_ID, 1, GL_FALSE, projection_view_matrix.T)
 
         # camera_position = np.array(camera_position)
         glUniform3fv(self.camera_pos_id, 1, camera_position)
