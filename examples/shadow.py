@@ -25,7 +25,7 @@ if __name__ == "__main__":
                               [0, 1]]))
     sphere = Sphere(smoothness=4)
     cubes = []
-    for i in range(500):
+    for i in range(1000):
         cube = Cube()
         cube.scale(scale=np.random.random(3))
         cube.set_position(x=np.random.random()*20 - 10, z=np.random.random()*20 - 10)
