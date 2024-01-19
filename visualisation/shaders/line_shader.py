@@ -53,8 +53,8 @@ class LineShader(Shader):
             glDrawArrays(GL_LINES, 0, len(wireframe.model.lines.flatten()) // 3)
 
             glDisableVertexAttribArray(0)
-            # glDisableVertexAttribArray(1)
-            # glDisableVertexAttribArray(2)
+            glDisableVertexAttribArray(1)
+            glDisableVertexAttribArray(2)
             glDisableVertexAttribArray(3)
         self.end()
 

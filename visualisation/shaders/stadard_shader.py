@@ -79,10 +79,10 @@ class StandardShader(Shader):
                 vis_object.load_vbos()
                 vis_object.mesh.changed = False
 
-            # self.bind_buffers(vis_object)
+            self.bind_buffers(vis_object)
             # glBindVertexArray(vis_object.vertex_array_object)
             # self.bind_material(vis_object)
-            self.bind_object(vis_object)
+            # self.bind_object(vis_object)
 
             glUniformMatrix4fv(self.object_transformation_id, 1, GL_FALSE,
                                vis_object.mesh.transformation.T)
@@ -96,9 +96,9 @@ class StandardShader(Shader):
                 None  # // element array buffer offset
             )
 
-            # glDisableVertexAttribArray(0)
-            # glDisableVertexAttribArray(1)
-            # glDisableVertexAttribArray(2)
+            glDisableVertexAttribArray(0)
+            glDisableVertexAttribArray(1)
+            glDisableVertexAttribArray(2)
         self.end()
 
     def bind_material(self, vis_object):
