@@ -31,8 +31,11 @@ class Texture:
         if texture_interpolation is None:
             texture_interpolation = GL_LINEAR
         self.texture_interpolation = texture_interpolation
+        self.loaded = False
 
     def load(self):
+        if self.loaded:
+            return
         self.texture_id = glGenTextures(1)
         glBindTexture(GL_TEXTURE_2D, self.texture_id)
         imgData = self.data.astype(np.uint8)
@@ -46,3 +49,4 @@ class Texture:
             # grayscale
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, self.data.shape[1], self.data.shape[0],
                          0, GL_RED, GL_UNSIGNED_BYTE, imgData)
+        self.loaded = True

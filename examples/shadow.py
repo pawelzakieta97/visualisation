@@ -23,15 +23,9 @@ if __name__ == "__main__":
                               [1, 0],
                               [1, 1],
                               [0, 1]]))
-    sphere = Sphere(smoothness=4)
-    cubes = []
-    for i in range(500):
-        cube = Cube()
-        cube.scale(scale=np.random.random(3))
-        cube.set_position(x=np.random.random()*20 - 10, z=np.random.random()*20 - 10)
-        cubes.append(cube)
-        win.add_object(cube)
-    merged_cubes = merge_meshes(cubes, as_mesh=True)
+    sphere = Sphere(smoothness=4, init_uv=True)
+
+    # merged_cubes = merge_meshes(cubes, as_mesh=True)
     # cube_obj = win.add_object(merged_cubes)
     sphere.transform(get_translation_matrix(dy=2, dx=0))
     plane = win.add_object(plane)
@@ -44,13 +38,25 @@ if __name__ == "__main__":
                               reflectiveness=reflectiveness,
                               glossiness=glossiness
                               )
-
+    sphere_obj.material = Material(diffuse=diffuse,
+                              reflectiveness=reflectiveness,
+                              glossiness=glossiness
+                              )
+    cubes = []
+    for i in range(500):
+        cube = Cube()
+        cube.scale(scale=np.random.random(3))
+        cube.set_position(x=np.random.random() * 20 - 10, z=np.random.random() * 20 - 10)
+        cubes.append(cube)
+        cube_obj = win.add_object(cube)
+        cube_obj.material = plane.material
 
     def tick():
         tick.i += 1
         sphere.set_position(position=[2 * np.cos(tick.i / 20),
-                             2,
-                             2 * np.sin(tick.i / 20)])
+                                      2,
+                                      2 * np.sin(tick.i / 20)])
+
 
     tick.i = 0
     win.run(tick)

@@ -45,13 +45,8 @@ class VisObject(Renderable):
             return ColorMode.UNIFORM
 
     def load_vbos(self):
-        #
-        # self.vertex_array_object = glGenVertexArrays(1)
-        # glBindVertexArray(self.vertex_array_object)es
         glBindBuffer(GL_ARRAY_BUFFER, self.vertex_buffer)
         glBufferData(GL_ARRAY_BUFFER, self.mesh.vertices.astype(np.float32), GL_STATIC_DRAW)
-        # glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, None)
-        # glEnableVertexAttribArray(0)
 
         if self.get_color_mode() == ColorMode.UNIFORM:
             self.color_buffer = None
@@ -62,13 +57,8 @@ class VisObject(Renderable):
         elif self.get_color_mode() == ColorMode.UV:
             glBindBuffer(GL_ARRAY_BUFFER, self.uv_buffer)
             glBufferData(GL_ARRAY_BUFFER, self.mesh.uv.astype(np.float32), GL_STATIC_DRAW)
-            # glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, None)
-            # glEnableVertexAttribArray(2)
         glBindBuffer(GL_ARRAY_BUFFER, self.normal_buffer)
         glBufferData(GL_ARRAY_BUFFER, self.mesh.normals.astype(np.float32), GL_STATIC_DRAW)
-        # glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, None)
-        # glEnableVertexAttribArray(1)
-
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.indices_buffer)
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, self.mesh.triangle_indices.astype(np.uint32), GL_STATIC_DRAW)
 

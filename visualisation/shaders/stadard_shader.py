@@ -79,14 +79,11 @@ class StandardShader(Shader):
                 vis_object.load_vbos()
                 vis_object.mesh.changed = False
 
-            self.bind_buffers(vis_object)
-            # glBindVertexArray(vis_object.vertex_array_object)
-            # self.bind_material(vis_object)
-            # self.bind_object(vis_object)
+            self.bind_object(vis_object)
 
             glUniformMatrix4fv(self.object_transformation_id, 1, GL_FALSE,
                                vis_object.mesh.transformation.T)
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vis_object.indices_buffer)
+            # glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vis_object.indices_buffer)
             self.bind_material(vis_object)
             glDrawElements(
                 GL_TRIANGLES,  # mode
@@ -95,10 +92,10 @@ class StandardShader(Shader):
                 GL_UNSIGNED_INT,  # // type
                 None  # // element array buffer offset
             )
-
-            glDisableVertexAttribArray(0)
-            glDisableVertexAttribArray(1)
-            glDisableVertexAttribArray(2)
+            glBindVertexArray(0)
+            # glDisableVertexAttribArray(0)
+            # glDisableVertexAttribArray(1)
+            # glDisableVertexAttribArray(2)
         self.end()
 
     def bind_material(self, vis_object):
@@ -148,4 +145,5 @@ class StandardShader(Shader):
             vao = glGenVertexArrays(1)
             glBindVertexArray(vao)
             self.bind_buffers(vis_object)
+            # self.bind_material(vis_object)
             self.vaos[vis_object] = vao
