@@ -19,29 +19,5 @@ uniform vec3 cameraPosition;
 
 void main(){
 
-	// Output color = color specified in the vertex shader, 
-	// interpolated between all 3 surrounding vertices
-//	color = normal_worldspace;
-	vec3 nnormal_worldspace = normalize(normal_worldspace);
-	vec3 c2p = position_worldspace - cameraPosition;
-	c2p = normalize(c2p);
-	vec3 p2l = lightPosition - position_worldspace;
-	p2l = normalize(p2l);
-	color = vec3(0,0,0);
-	// AMBIENT
-	float ambient=0.15;
-	color += objectDiffuse * ambient;
-	// DIFFUSE
-	color += clamp(dot(nnormal_worldspace, p2l), 0, 1) * lightColor * objectDiffuse;
-	// SPECULAR
-	vec3 r = c2p - 2 * dot(nnormal_worldspace, c2p) * nnormal_worldspace;
-//	r = -p2c;
-	float specular_factor;
-	float glossinessMultiplier = (1/(1.01 - objectGlossiness));
-	if (dot(nnormal_worldspace, p2l) < 0) specular_factor = 0;
-	else specular_factor = pow(clamp(dot(p2l, normalize(r)), 0, 1), glossinessMultiplier) * glossinessMultiplier * 0.2;
-//	specular_factor = clamp(dot(p2l, normalize(r)), 0, 1);
-//	specular_factor = 1;
-	color += specular_factor * lightColor * objectReflectiveness;
-
+	color = objectDiffuse;
 }

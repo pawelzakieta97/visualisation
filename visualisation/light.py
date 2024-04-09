@@ -19,13 +19,15 @@ class Light:
         self.shadow_map_size = 10
         self.near = 0.1
         self.far = 1000
+        self._transformation_matrix = None
 
     def get_transformation_matrix(self):
-
-        projection_matrix = get_perspective_projection_matrix(fov=np.pi * 0.8, aspect_ratio=1,
-                                                              near=self.near, far=self.far)
-        view_matrix = look_at(self.position, target=np.zeros(3))
-        return projection_matrix @ np.linalg.inv(view_matrix)
+        if self._transformation_matrix is None:
+            projection_matrix = get_perspective_projection_matrix(fov=np.pi * 0.8, aspect_ratio=1,
+                                                                  near=self.near, far=self.far)
+            view_matrix = look_at(self.position, target=np.zeros(3))
+            self._transformation_matrix = projection_matrix @ np.linalg.inv(view_matrix)
+        return self._transformation_matrix
 
     def load(self):
         self.depth_map = glGenTextures(1)

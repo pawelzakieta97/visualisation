@@ -2,6 +2,7 @@ import numpy as np
 
 from PIL import Image
 from models.mesh import Mesh
+from models.multi_mesh import merge_meshes
 from models.primitives.cube import Cube
 from models.primitives.sphere import Sphere
 from visualisation.material import Material
@@ -22,40 +23,40 @@ if __name__ == "__main__":
                               [1, 0],
                               [1, 1],
                               [0, 1]]))
-    sphere = Sphere(smoothness=4)
-    cube = Cube()
+    sphere = Sphere(smoothness=4, init_uv=True)
+
+    # merged_cubes = merge_meshes(cubes, as_mesh=True)
+    # cube_obj = win.add_object(merged_cubes)
     sphere.transform(get_translation_matrix(dy=2, dx=0))
-    cube.transform(get_translation_matrix(dy=0, dx=3))
     plane = win.add_object(plane)
     sphere_obj = win.add_object(sphere)
-    cube_obj = win.add_object(cube)
 
     glossiness = levels(image_data.mean(axis=2), low=0.1, high=1)
     diffuse = levels(image_data, high=0.5)
     reflectiveness = levels(image_data, low=0, high=0.4)
     plane.material = Material(diffuse=diffuse,
                               reflectiveness=reflectiveness,
-                              glossiness=glossiness,
-                              # reflectiveness=reflectiveness,
-                              # glossiness=glossiness,
-                              # glossiness=(np.random.random((10, 10))*255).astype(np.uint8))
+                              glossiness=glossiness
                               )
-    cube_obj.material = Material(diffuse=diffuse,
-                                 reflectiveness=reflectiveness,
-                                 glossiness=glossiness,
-                                 # reflectiveness=reflectiveness,
-                                 # glossiness=glossiness,
-                                 # glossiness=(np.random.random((10, 10))*255).astype(np.uint8))
-                                 )
-
+    sphere_obj.material = Material(diffuse=diffuse,
+                              reflectiveness=reflectiveness,
+                              glossiness=glossiness
+                              )
+    cubes = []
+    for i in range(500):
+        cube = Cube()
+        cube.scale(scale=np.random.random(3))
+        cube.set_position(x=np.random.random() * 20 - 10, z=np.random.random() * 20 - 10)
+        cubes.append(cube)
+        cube_obj = win.add_object(cube)
+        cube_obj.material = plane.material
 
     def tick():
         tick.i += 1
-        sphere.set_position([2 * np.cos(tick.i / 20),
-                             2,
-                             0])
+        sphere.set_position(position=[2 * np.cos(tick.i / 20),
+                                      2,
+                                      2 * np.sin(tick.i / 20)])
 
 
     tick.i = 0
-    win.tick_func = tick
-    win.run()
+    win.run(tick)

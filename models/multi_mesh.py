@@ -35,7 +35,7 @@ class MultiMesh(Mesh):
         self.changed = True
 
 
-def merge_meshes(objects: list[Mesh]):
+def merge_meshes(objects: list[Mesh], as_mesh=False):
     vert_counts = [len(obj.vertices) for obj in objects]
     triangle_indices_count = [len(obj.triangle_indices) for obj in objects]
     merged_verts = np.zeros((sum(vert_counts), 3))
@@ -47,7 +47,7 @@ def merge_meshes(objects: list[Mesh]):
     for obj in objects:
         last_vert_index = first_vert_index + len(obj.vertices)
         last_tri_index = first_tri_index + len(obj.triangle_indices)
-        merged_verts[first_vert_index: last_vert_index, :] = obj.vertices
+        merged_verts[first_vert_index: last_vert_index, :] = (obj.transformation @ np.hstack((obj.vertices, np.ones((obj.vertices.shape[0], 1)))).T).T[:,:3]
         if obj.color is None:
             merged_colors = None
         if merged_colors is not None:
@@ -56,8 +56,9 @@ def merge_meshes(objects: list[Mesh]):
         merged_triangle_indices[first_tri_index: last_tri_index, :] = obj.triangle_indices + first_vert_index
         first_vert_index = last_vert_index
         first_tri_index = last_tri_index
+    if as_mesh:
+        return Mesh(merged_verts, merged_triangle_indices, merged_colors, merged_normals)
     return merged_verts, merged_triangle_indices, merged_colors, merged_normals
-    return Mesh(merged_verts, merged_triangle_indices, merged_colors, merged_normals)
 
 
 if __name__ == '__main__':

@@ -29,6 +29,8 @@ class Wireframe(Renderable):
 
     def load_vbos(self):
         pass
+        # self.vertex_buffer = glGenBuffers(1)
+        # self.color_buffer = glGenBuffers(1)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.vertex_buffer)
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, self.model.lines.astype(np.float32).flatten(),
                      GL_STATIC_DRAW)
@@ -37,12 +39,12 @@ class Wireframe(Renderable):
                      GL_STATIC_DRAW)
 
 
-    def render(self, projection_matrix, view_matrix, camera_position, lights):
+    def render(self, projection_view_matrix, camera_position, lights):
         if self.model.changed:
             self.load_vbos()
             self.model.changed = False
         self.shader.begin()
-        glUniformMatrix4fv(self.MVP_ID, 1, GL_FALSE, (projection_matrix @ np.linalg.inv(view_matrix)).T)
+        glUniformMatrix4fv(self.MVP_ID, 1, GL_FALSE, projection_view_matrix.T)
 
         glEnableVertexAttribArray(0)
         glBindBuffer(GL_ARRAY_BUFFER, self.vertex_buffer)
@@ -52,7 +54,7 @@ class Wireframe(Renderable):
         glBindBuffer(GL_ARRAY_BUFFER, self.color_buffer)
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, None)
 
-        glDrawArrays(GL_LINES, 0, len(self.model.lines.flatten()) // 3)  # 12*3 indices starting at 0 -> 12 triangles
+        glDrawArrays(GL_LINES, 0, len(self.model.lines.flatten()) // 3)
 
         glDisableVertexAttribArray(0)
         glDisableVertexAttribArray(1)
