@@ -9,18 +9,19 @@ from visualisation.visobject import VisObject
 from OpenGL.GL import *  # pylint: disable=W0614
 
 
-class UniversalShader(Shader):
+class StandardShader(Shader):
     """
     This shader provides a standard phong rendering
     (using shadows requires that light's depth map has been already rendered)
 
     """
-    def __init__(self, vertex_path: str, fragment_path: str,
-                 vertex_buffer=True, normal_buffer=True, uv_buffer=True, color_buffer=False,
-                 material=True):
+    VERTEX_PATH = "../glsl/phong/vertex_textured.glsl"
+    FRAGMENT_PATH = "../glsl/phong/fragment_universal.glsl"
 
-        super().__init__(os.path.join(self.SHADER_DIRECTORY, 'phong', 'vertex_textured.glsl'),
-                         os.path.join(self.SHADER_DIRECTORY, 'phong', 'fragment_universal.glsl'),
+    def __init__(self, max_lights=10):
+
+        super().__init__(os.path.join(self.SHADER_DIRECTORY, 'flat', 'vertex_textured.glsl'),
+                         os.path.join(self.SHADER_DIRECTORY, 'flat', 'fragment_universal.glsl'),
                          priority=0)
         self.pv_id = None
         self.camera_transformation_id = None
@@ -36,6 +37,8 @@ class UniversalShader(Shader):
         self.glossiness_sampler_id = None
         self.reflectiveness_sampler_id = None
         self.depth_sampler_id = None
+        self.max_lights = max_lights
+        self.vaos = {}
 
     def load(self):
         super().load()
@@ -76,13 +79,12 @@ class UniversalShader(Shader):
                 vis_object.load_vbos()
                 vis_object.mesh.changed = False
 
-            # self.bind_buffers(vis_object)
-            glBindVertexArray(vis_object.vertex_array_object)
-            self.bind_material(vis_object)
+            self.bind_object(vis_object)
 
             glUniformMatrix4fv(self.object_transformation_id, 1, GL_FALSE,
                                vis_object.mesh.transformation.T)
             # glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vis_object.indices_buffer)
+            self.bind_material(vis_object)
             glDrawElements(
                 GL_TRIANGLES,  # mode
                 len(vis_object.mesh.triangle_indices) * 3,  # // count
@@ -90,7 +92,7 @@ class UniversalShader(Shader):
                 GL_UNSIGNED_INT,  # // type
                 None  # // element array buffer offset
             )
-
+            glBindVertexArray(0)
             # glDisableVertexAttribArray(0)
             # glDisableVertexAttribArray(1)
             # glDisableVertexAttribArray(2)
@@ -104,23 +106,9 @@ class UniversalShader(Shader):
             glUniform3fv(self.object_diffuse_id, 1, np.array([-1, -1, -1]))
         else:
             glUniform3fv(self.object_diffuse_id, 1, vis_object.material.diffuse)
-        if isinstance(vis_object.material.reflectiveness, Texture):
-            glActiveTexture(GL_TEXTURE1)
-            glBindTexture(GL_TEXTURE_2D, vis_object.material.reflectiveness.texture_id)
-            glUniform1i(self.reflectiveness_sampler_id, 0)
-            glUniform3fv(self.object_reflectiveness_id, 1, np.array([-1, -1, -1]))
-        else:
-            glUniform3fv(self.object_reflectiveness_id, 1, vis_object.material.reflectiveness)
-        if isinstance(vis_object.material.glossiness, Texture):
-            glActiveTexture(GL_TEXTURE2)
-            glBindTexture(GL_TEXTURE_2D, vis_object.material.glossiness.texture_id)
-            glUniform1i(self.glossiness_sampler_id, 2)
-            glUniform1fv(self.object_glossiness_id, 1, -1)
-        else:
-            glUniform1fv(self.object_glossiness_id, 1, vis_object.material.glossiness)
+
 
     def bind_buffers(self, vis_object):
-        # binding vertex buffer
         glEnableVertexAttribArray(0)
         glBindBuffer(GL_ARRAY_BUFFER, vis_object.vertex_buffer)
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, None)
@@ -135,3 +123,14 @@ class UniversalShader(Shader):
             glEnableVertexAttribArray(2)
             glBindBuffer(GL_ARRAY_BUFFER, vis_object.uv_buffer)
             glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, None)
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vis_object.indices_buffer)
+
+    def bind_object(self, vis_object: VisObject):
+        if vis_object in self.vaos:
+            glBindVertexArray(self.vaos[vis_object])
+        else:
+            vao = glGenVertexArrays(1)
+            glBindVertexArray(vao)
+            self.bind_buffers(vis_object)
+            # self.bind_material(vis_object)
+            self.vaos[vis_object] = vao

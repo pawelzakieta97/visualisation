@@ -70,5 +70,31 @@ void main(){
 
 	color += specular_factor * lightColor * reflectiveness;
 
+	//volumetric
+//	float norm = length(cameraPosition - position_worldspace);
+//	float resolution = 0.1;
+//	vec3 p = cameraPosition;
+//	float distance = 0;
+//	float max_distance = min(100, norm);
+//	while (distance < norm){
+//		distance += resolution;
+//		p += c2p * resolution;
+//		vec4 pos_lightspace = lightTransformation * vec4(p, 1);
+//		vec4 pos_lightspace_scaled = pos_lightspace/pos_lightspace[3]/2 + 0.5;
+//		if ((pos_lightspace_scaled[0] > 0) &&
+//			(pos_lightspace_scaled[0] < 1) &&
+//			(pos_lightspace_scaled[1] > 0) &&
+//			(pos_lightspace_scaled[1] < 1)){
+//				float reference_distance = texture(depthSampler, vec2(pos_lightspace_scaled[0], pos_lightspace_scaled[1])).r;
+//				if (reference_distance < pos_lightspace_scaled[2] - 0.001) continue;
+//			else {
+//					color = color * 0.9 + 0.08;
+//				}
+//
+//		}
+//	}
+
+	// reinhardt epxosure
+//	color = 1 / (1 + 1/color);
 
 	}

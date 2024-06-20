@@ -23,6 +23,8 @@ class Mesh:
 
         self.normals = normals
         self.edges, self.triangle_edges = None, None
+        # TODO: transformation should be VisObject attribute to allow for multiple instances of the same mesh with
+        #  differing transformations
         self.transformation = np.eye(4)
         self.changed = True
 

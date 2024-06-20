@@ -2,7 +2,6 @@ import numpy as np
 
 from PIL import Image
 from models.mesh import Mesh
-from models.multi_mesh import merge_meshes
 from models.primitives.cube import Cube
 from models.primitives.sphere import Sphere
 from visualisation.material import Material
@@ -39,9 +38,9 @@ if __name__ == "__main__":
                               glossiness=glossiness
                               )
     sphere_obj.material = Material(diffuse=diffuse,
-                              reflectiveness=reflectiveness,
-                              glossiness=glossiness
-                              )
+                                   reflectiveness=reflectiveness,
+                                   glossiness=glossiness
+                                   )
     cubes = []
     for i in range(500):
         cube = Cube()
@@ -51,11 +50,12 @@ if __name__ == "__main__":
         cube_obj = win.add_object(cube)
         cube_obj.material = plane.material
 
+
     def tick():
         tick.i += 1
-        sphere.set_position(position=[2 * np.cos(tick.i / 20),
+        sphere.set_position(position=[2 * np.cos(tick.i / 200),
                                       2,
-                                      2 * np.sin(tick.i / 20)])
+                                      2 * np.sin(tick.i / 200)])
 
 
     tick.i = 0
