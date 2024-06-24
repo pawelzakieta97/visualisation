@@ -10,9 +10,9 @@ from sphere import Sphere
 np.random.seed(0)
 
 
-def get_object_tree_greedy(meshes: list[Renderable], max_objs_per_bb=5, k=2) -> Group:
+def get_object_tree_greedy(meshes: list[Renderable], max_objs_per_bb=5, max_depth=10) -> Group:
     print(len(meshes))
-    if len(meshes) < max_objs_per_bb:
+    if len(meshes) <= max_objs_per_bb or max_depth<=1:
         return Group(meshes)
     bbs = np.stack([mesh.get_bb() for mesh in meshes])
     centers = bbs.mean(axis=1)
@@ -20,7 +20,7 @@ def get_object_tree_greedy(meshes: list[Renderable], max_objs_per_bb=5, k=2) -> 
     split = None
     for axis in range(3):
         sorted_idxs = np.argsort(centers[:, axis])
-        for i in range(1, len(sorted_idxs) - 1):
+        for i in range(1, len(sorted_idxs)):
             left_bbs = bbs[sorted_idxs[:i]]
             right_bbs = bbs[sorted_idxs[i:]]
             left_bb_min = left_bbs[:, 0, :].min(axis=0)
@@ -40,8 +40,8 @@ def get_object_tree_greedy(meshes: list[Renderable], max_objs_per_bb=5, k=2) -> 
             if total_cost < min_cost:
                 min_cost = total_cost
                 split = [sorted_idxs[:i], sorted_idxs[i:]]
-    groups = [get_object_tree_greedy([meshes[s] for s in split[0]]),
-              get_object_tree_greedy([meshes[s] for s in split[1]])]
+    groups = [get_object_tree_greedy([meshes[s] for s in split[0]], max_objs_per_bb=max_objs_per_bb, max_depth=max_depth-1),
+              get_object_tree_greedy([meshes[s] for s in split[1]], max_objs_per_bb=max_objs_per_bb, max_depth=max_depth-1)]
     return Group(groups)
 
 

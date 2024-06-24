@@ -7,8 +7,6 @@ from models.primitives.sphere import Sphere as SphereMesh
 from models.wireframe import Wireframe
 from raytracing.bvh import get_object_tree_greedy
 from raytracing.sphere import Sphere
-from transformations import levels
-from visualisation.material import Material
 from visualisation.meshViewer import MeshViewWindow
 
 if __name__ == "__main__":

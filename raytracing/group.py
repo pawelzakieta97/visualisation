@@ -16,6 +16,9 @@ class Group(Renderable):
         return self._bb
 
     def get_elements(self):
+        """
+        Returns leaf elements
+        """
         elements = []
         for element in self.elements:
             if isinstance(element, Group):
@@ -24,8 +27,21 @@ class Group(Renderable):
                 elements.append(element)
         return elements
 
+    def get_all_elements(self):
+        """
+        Returns all leaf and node elements
+        """
+        elements = [self]
+        for element in self.elements:
+            if isinstance(element, Group):
+                elements += element.get_all_elements()
+            else:
+                elements.append(element)
+        return elements
+
+
     def serialize(self):
-        all_elements = self.get_elements()
+        all_elements = self.get_all_elements()
         id_to_element = {}
         element_to_id = {}
         for element in all_elements:
