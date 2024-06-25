@@ -11,7 +11,6 @@ np.random.seed(0)
 
 
 def get_object_tree_greedy(meshes: list[Renderable], max_objs_per_bb=5, max_depth=10) -> Group:
-    print(len(meshes))
     if len(meshes) <= max_objs_per_bb or max_depth<=1:
         return Group(meshes)
     bbs = np.stack([mesh.get_bb() for mesh in meshes])

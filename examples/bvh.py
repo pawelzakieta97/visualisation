@@ -11,9 +11,9 @@ from visualisation.meshViewer import MeshViewWindow
 
 if __name__ == "__main__":
     win = MeshViewWindow(add_floorgrid=True, orthographic=False, target_fps=60)
-    sphere_count = 100
+    sphere_count = 1000
     sphere_positions = np.random.random((sphere_count, 3)) * 10
-    sphere_radius = np.random.random(sphere_count) * 0.5
+    sphere_radius = np.random.random(sphere_count) * 0.05
     sphere_positions[:, 1] = sphere_radius * 0
     spheres = [Sphere(pos, r) for pos, r in zip(sphere_positions, sphere_radius)]
     sphere_meshes = []
@@ -22,7 +22,7 @@ if __name__ == "__main__":
         sphere_mesh.set_position(position=sphere.pos)
         win.add_object(sphere_mesh)
 
-    tree = get_object_tree_greedy(spheres)
+    tree = get_object_tree_greedy(spheres, max_objs_per_bb=2)
     bbs = tree.get_bbs()
 
     # bbs = [[np.array([[0,0,0],[1,1,1]])]]

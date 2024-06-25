@@ -24,7 +24,7 @@ class Camera:
         ray_dir = (self.M[:3, :3] @ ray_dir.reshape(-1,3).T).T.reshape(self.height, self.width, 3)
 
         ray_starts = np.zeros((self.height, self.width, 3))
-        ray_starts = np.concatenate((ray_starts, np.ones((240, 320, 1))), axis=-1)
+        ray_starts = np.concatenate((ray_starts, np.ones((self.height, self.width, 1))), axis=-1)
         ray_starts = (self.M @ ray_starts.reshape(-1,4).T).T.reshape(self.height, self.width, 4)[:,:,:3]
         if flatten:
             ray_starts = ray_starts.reshape(-1, 3)
