@@ -20,11 +20,16 @@ ENTITY_TYPE_MAP = {
 }
 
 INF_DISTANCE = 9999999
+
+
 def hit(rays, bbs, group_child_indexes, children_types, spheres_data):
     ray_starts = rays[0]
     ray_count = ray_starts.shape[0]
     ray_directions = rays[1]
     depth = 64
+    # group_sizes = np.ones(group_child_indexes.shape[0]) * group_child_indexes.shape[1]
+    # group_sizes -= (group_child_indexes==-1).sum(axis=1)
+
     candidates = np.zeros((ray_count, depth)).astype(int)
     candidates_types = np.zeros((ray_count, depth)).astype(int)
     candidate_lengths = np.ones(ray_count)
@@ -37,16 +42,10 @@ def hit(rays, bbs, group_child_indexes, children_types, spheres_data):
         # id of elements to be checked (both groups and primitives)
         checked_ids = candidates[:, 0]
 
-        # mask of candidates that refer to groups
-        box_checks = candidates_types[:, 0] == ENTITY_TYPE_MAP['group']
+
+        # ----------------------- HANDLE SPHERE CHECKS -----------------------
         # mask of candidates that refer to spheres
         sphere_checks = candidates_types[:, 0] == ENTITY_TYPE_MAP['sphere']
-
-        # mask of box_checks that hit boxes
-        _box_hits = hits_box(ray_starts[box_checks],
-                            ray_directions[box_checks],
-                            bbs[checked_ids[box_checks], :, :])
-
         # hit distances of spheres. If sphere is not hit, hit distance is set to INF_DISTANCE
         sphere_hit_distances = hits_sphere(ray_starts[sphere_checks],
                                            ray_directions[sphere_checks],
@@ -60,14 +59,23 @@ def hit(rays, bbs, group_child_indexes, children_types, spheres_data):
         ray_min_hit_distances[sphere_check_indexes[closer_hits]] = sphere_hit_distances[closer_hits]
         ray_hit_ids[sphere_check_indexes[closer_hits]] = checked_ids[sphere_checks][closer_hits]
 
+
+        # ----------------------- HANDLE BB CHECKS -----------------------
+        # mask of candidates that refer to groups
+        box_checks = candidates_types[:, 0] == ENTITY_TYPE_MAP['group']
+
         # mask of all checks that hit boxes
         box_hits = np.zeros_like(checked_ids).astype(bool)
-        box_hits[box_checks] = _box_hits
+        box_hits[box_checks] = hits_box(ray_starts[box_checks],
+                                        ray_directions[box_checks],
+                                        bbs[checked_ids[box_checks], :, :])
         hit_group_ids = checked_ids[box_hits]
 
-        # TODO: HANDLE 1-ELEMENT GROUPS
+
+        # ----------------------- UPDATE candidates, candidate_types AND candidate_lengths BUFFERS ---------------------
         candidates[box_hits, 1:] = candidates[box_hits, :-1]
-        candidates[box_hits, :2] = group_child_indexes[hit_group_ids, :2]
+        hit_group_children = group_child_indexes[hit_group_ids, :2]
+        candidates[box_hits, :2] = hit_group_children
         candidates[~box_hits, :-1] = candidates[~box_hits, 1:]
 
         candidates_types[box_hits, 1:] = candidates_types[box_hits, :-1]
@@ -76,6 +84,15 @@ def hit(rays, bbs, group_child_indexes, children_types, spheres_data):
 
         candidate_lengths[box_hits] = candidate_lengths[box_hits] + 1
         candidate_lengths[~box_hits] = candidate_lengths[~box_hits] - 1
+
+        # -------------- HANDLING 1-ELEMENT GROUPS -------------------
+        while True:
+            skip_mask = candidates[:, 0] == -1
+            if not any(skip_mask):
+                break
+            candidates[skip_mask, :-1] = candidates[skip_mask, 1:]
+            candidates_types[skip_mask, :-1] = candidates_types[skip_mask, 1:]
+            candidate_lengths[skip_mask] -= 1
 
         candidate_mask = candidate_lengths > 0
         if not candidate_mask.any():
@@ -164,15 +181,16 @@ def render(objects: list[Renderable], camera: Camera):
 
 
 if __name__ == "__main__":
-    width = 1280
-    height = 720
+    width = 1000
+    height = 1000
     print(hits_sphere(np.array([[0, 0, 0]]), np.array([[1, 0, 0]]), np.array([[10, 0.999999, 0]]), np.array([1])))
     sphere_count = 1000
     sphere_positions = np.random.random((sphere_count, 3)) * 20
-    sphere_radius = np.random.random(sphere_count) * 0.2
+    sphere_radius = np.random.random(sphere_count) * 0.1 + 0.5
     sphere_positions[:, 1] = sphere_radius * 0
     spheres = [Sphere(pos, r) for pos, r in zip(sphere_positions, sphere_radius)]
-    res = render(spheres, Camera(width=width, height=height,
-                                 position=np.array([10, -2, 25]), yaw=0)).reshape(height, width)
-    res = ((res + 1)/sphere_count*255).astype(np.uint8)
+    camera = Camera(width=width, height=height,
+                                 position=np.array([10, 5, 25]), yaw=0, pitch=-np.pi/6)
+    res = render(spheres, camera).reshape(height, width)
+    res = ((res + 1) / sphere_count * 255).astype(np.uint8)[::-1, :]
     pass

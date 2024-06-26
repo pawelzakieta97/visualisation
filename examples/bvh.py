@@ -9,12 +9,19 @@ from raytracing.bvh import get_object_tree_greedy
 from raytracing.sphere import Sphere
 from visualisation.meshViewer import MeshViewWindow
 
+np.random.seed(2)
 if __name__ == "__main__":
     win = MeshViewWindow(add_floorgrid=True, orthographic=False, target_fps=60)
-    sphere_count = 1000
-    sphere_positions = np.random.random((sphere_count, 3)) * 10
-    sphere_radius = np.random.random(sphere_count) * 0.05
+    # sphere_count = 1000
+    # sphere_positions = np.random.random((sphere_count, 3)) * 10
+    # sphere_radius = np.random.random(sphere_count) * 0.05
+    # sphere_positions[:, 1] = sphere_radius * 0
+
+    sphere_count = 10
+    sphere_positions = np.random.random((sphere_count, 3)) * 20
+    sphere_radius = np.random.random(sphere_count) * 2
     sphere_positions[:, 1] = sphere_radius * 0
+
     spheres = [Sphere(pos, r) for pos, r in zip(sphere_positions, sphere_radius)]
     sphere_meshes = []
     for sphere in spheres:
