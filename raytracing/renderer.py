@@ -110,12 +110,12 @@ def hit2(rays, bbs, group_child_indexes, children_types, spheres_data):
     ray_starts = rays[0]
     ray_count = ray_starts.shape[0]
     ray_directions = rays[1]
-    depth = 32
+    depth = 128
 
     # candidates - objects that are hit and should be explored
     candidates = np.zeros((ray_count, depth)).astype(int)
     candidates_min_possible_distance = np.ones_like(candidates) * INF_DISTANCE
-    candidate_lengths = np.ones(ray_count)
+    candidate_lengths = np.ones(ray_count).astype(int)
     min_hit_distances = np.ones(ray_count) * INF_DISTANCE
     # min_hit_distances = np.random.random(ray_count) * 40
 
@@ -126,7 +126,7 @@ def hit2(rays, bbs, group_child_indexes, children_types, spheres_data):
     spheres_r = spheres_data[:, 3]
     for i in range(200):
         # id of elements to be checked (both groups and primitives)
-        explored_ids = candidates[:, 0]
+        explored_ids = candidates[np.arange(candidates.shape[0]), candidate_lengths-1]
 
         checked_children_ids = group_child_indexes[explored_ids, :]
         checked_children_types = children_types[explored_ids, :]
@@ -181,15 +181,12 @@ def hit2(rays, bbs, group_child_indexes, children_types, spheres_data):
         checked_children_group_ids_0[swap_indexes] = checked_children_group_ids_1[swap_indexes]
         checked_children_group_ids_1[swap_indexes] = swap_id_0
 
-        candidates[:, :-1] = candidates[:, 1:]
         candidate_lengths -= 1
 
-        candidates[checked_children_groups_indexes[group_1_hits], 1:] = candidates[checked_children_groups_indexes[group_1_hits], :-1]
-        candidates[checked_children_groups_indexes[group_1_hits], 0] = checked_children_group_ids_1[group_1_hits]
+        candidates[checked_children_groups_indexes[group_1_hits], candidate_lengths[checked_children_groups_indexes[group_1_hits]]] = checked_children_group_ids_1[group_1_hits]
         candidate_lengths[checked_children_groups_indexes[group_1_hits]] += 1
 
-        candidates[checked_children_groups_indexes[group_0_hits], 1:] = candidates[checked_children_groups_indexes[group_0_hits], :-1]
-        candidates[checked_children_groups_indexes[group_0_hits], 0] = checked_children_group_ids_0[group_0_hits]
+        candidates[checked_children_groups_indexes[group_0_hits], candidate_lengths[checked_children_groups_indexes[group_0_hits]]] = checked_children_group_ids_0[group_0_hits]
         candidate_lengths[checked_children_groups_indexes[group_0_hits]] += 1
 
         candidate_mask = candidate_lengths > 0
@@ -285,7 +282,9 @@ if __name__ == "__main__":
     sphere_positions[:, 1] = sphere_radius * 0
     spheres = [Sphere(pos, r) for pos, r in zip(sphere_positions, sphere_radius)]
     camera = Camera(width=width, height=height,
-                    position=np.array([10, 1, 28]), yaw=0, pitch=-np.pi / 16)
+                    position=np.array([10, 10, 28]), yaw=0, pitch=-np.pi / 16)
+    # spheres[0].pos = np.array([10, 0.91, 27])
+    # spheres[0].radius = 0.75
     res = render(spheres, camera).reshape(height, width)
     res = ((res + 1) / sphere_count * 255).astype(np.uint8)[::-1, :]
     pass
