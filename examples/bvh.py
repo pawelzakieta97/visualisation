@@ -17,9 +17,9 @@ if __name__ == "__main__":
     # sphere_radius = np.random.random(sphere_count) * 0.05
     # sphere_positions[:, 1] = sphere_radius * 0
 
-    sphere_count = 10
+    sphere_count = 1000
     sphere_positions = np.random.random((sphere_count, 3)) * 20
-    sphere_radius = np.random.random(sphere_count) * 2
+    sphere_radius = np.random.random(sphere_count) * 0.2
     sphere_positions[:, 1] = sphere_radius * 0
 
     spheres = [Sphere(pos, r) for pos, r in zip(sphere_positions, sphere_radius)]
