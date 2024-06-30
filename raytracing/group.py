@@ -39,7 +39,6 @@ class Group(Renderable):
                 elements.append(element)
         return elements
 
-
     def serialize(self):
         all_elements = self.get_all_elements()
         id_to_element = {}

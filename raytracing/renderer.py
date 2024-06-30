@@ -107,6 +107,9 @@ def hit(rays, bbs, group_child_indexes, children_types, spheres_data):
 
 
 def hit2(rays, bbs, group_child_indexes, children_types, spheres_data):
+    """
+    Vectorized bounding volume hierarchy traversing
+    """
     ray_starts = rays[0]
     ray_count = ray_starts.shape[0]
     ray_directions = rays[1]
@@ -124,7 +127,7 @@ def hit2(rays, bbs, group_child_indexes, children_types, spheres_data):
     ray_hit_ids = np.ones(ray_count, dtype=int) * -1
     spheres_pos = spheres_data[:, :3]
     spheres_r = spheres_data[:, 3]
-    for i in range(200):
+    for i in range(20000):
         # id of elements to be checked (both groups and primitives)
         explored_ids = candidates[np.arange(candidates.shape[0]), candidate_lengths-1]
 
@@ -249,6 +252,8 @@ def hits_sphere(ray_starts, ray_directions, spheres_pos, spheres_r):
     # normals[hits] = ray_starts[hits, :] + ray_directions[hits, :] * hit_distances[:, None]
     return distances
 
+def hits_triangle(ray_starts, ray_directions, spheres_pos, spheres_r)
+    pass
 
 def render(objects: list[Renderable], camera: Camera):
     bvh = get_object_tree_greedy(objects, max_objs_per_bb=2)
