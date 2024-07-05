@@ -11,12 +11,14 @@ from raytracing.sphere import Sphere
 from raytracing.bvh import get_object_tree_greedy
 from raytracing.camera import Camera
 from raytracing.renderable import Renderable
+from raytracing.triangle import Triangle
 
 np.random.seed(2)
 
 ENTITY_TYPE_MAP = {
     'group': 0,
-    'sphere': 1
+    'sphere': 1,
+    'triangle': 2
 }
 
 INF_DISTANCE = 9999999
@@ -117,7 +119,6 @@ def hit2(rays, bbs, group_child_indexes, children_types, spheres_data):
 
     # candidates - objects that are hit and should be explored
     candidates = np.zeros((ray_count, depth)).astype(int)
-    candidates_min_possible_distance = np.ones_like(candidates) * INF_DISTANCE
     candidate_lengths = np.ones(ray_count).astype(int)
     min_hit_distances = np.ones(ray_count) * INF_DISTANCE
     # min_hit_distances = np.random.random(ray_count) * 40
@@ -206,6 +207,111 @@ def hit2(rays, bbs, group_child_indexes, children_types, spheres_data):
     hits[ray_indexes] = 1
     return ray_hit_ids
 
+def hit3(rays, bbs, group_child_indexes, children_types, triangles_data):
+    """
+    Vectorized bounding volume hierarchy traversing, handling triangles
+    """
+    ray_starts = rays[0]
+    ray_count = ray_starts.shape[0]
+    ray_directions = rays[1]
+    depth = 128
+
+    # candidates - objects that are hit and should be explored
+    candidates = np.zeros((ray_count, depth)).astype(int)
+    candidates_min_possible_distance = np.ones_like(candidates) * INF_DISTANCE
+    candidate_lengths = np.ones(ray_count).astype(int)
+    min_hit_distances = np.ones(ray_count) * INF_DISTANCE
+    # min_hit_distances = np.random.random(ray_count) * 40
+
+    ray_indexes = np.arange(ray_count)
+
+    ray_hit_ids = np.ones(ray_count, dtype=int) * -1
+
+    triangles_h = triangles_data[:, 15]
+    triangles_normals = triangles_data[:, 12:15]
+    triangles_Ts = triangles_data[:, :12].reshape(-1, 3, 4)
+
+    for i in range(20000):
+        # id of elements to be checked (both groups and primitives)
+        explored_ids = candidates[np.arange(candidates.shape[0]), candidate_lengths-1]
+
+        checked_children_ids = group_child_indexes[explored_ids, :]
+        checked_children_types = children_types[explored_ids, :]
+
+        checked_children_triangle_mask = (checked_children_types == ENTITY_TYPE_MAP['triangle'])[:, 0]
+        checked_children_triangle_indexes = np.where(checked_children_triangle_mask)[0]
+        checked_children_triangle_ids = checked_children_ids[checked_children_triangle_mask, :]
+        checked_children_triangle_ids_0 = checked_children_triangle_ids[:, 0]
+        checked_children_triangle_ids_1 = checked_children_triangle_ids[:, 1]
+
+        triangle_0_distances = hits_triangle(ray_starts[checked_children_triangle_mask],
+                                         ray_directions[checked_children_triangle_mask],
+                                         triangles_Ts[checked_children_triangle_ids_0, :, :],
+                                         triangles_normals[checked_children_triangle_ids_0, :],
+                                         triangles_h[checked_children_triangle_ids_0])
+        multi_element_group_mask = checked_children_triangle_ids_1 != -1
+        multi_element_group_indexes = np.where(multi_element_group_mask)[0]
+        triangle_1_distances = hits_triangle(ray_starts[checked_children_triangle_indexes[multi_element_group_mask]],
+                                         ray_directions[checked_children_triangle_indexes[multi_element_group_mask]],
+                                         triangles_Ts[checked_children_triangle_ids_1[multi_element_group_mask], :, :],
+                                         triangles_normals[checked_children_triangle_ids_1[multi_element_group_mask], :],
+                                         triangles_h[checked_children_triangle_ids_1[multi_element_group_mask]])
+        triangle_0_closer = triangle_0_distances < min_hit_distances[checked_children_triangle_indexes]
+        min_hit_distances[checked_children_triangle_indexes[triangle_0_closer]] = triangle_0_distances[triangle_0_closer]
+        ray_hit_ids[ray_indexes[checked_children_triangle_indexes[triangle_0_closer]]] = checked_children_triangle_ids_0[triangle_0_closer]
+
+        triangle_1_closer = triangle_1_distances < min_hit_distances[checked_children_triangle_indexes[multi_element_group_mask]]
+        min_hit_distances[checked_children_triangle_indexes[multi_element_group_indexes[triangle_1_closer]]] = triangle_1_distances[triangle_1_closer]
+        ray_hit_ids[ray_indexes[checked_children_triangle_indexes[multi_element_group_indexes[triangle_1_closer]]]] = (
+            checked_children_triangle_ids_1)[multi_element_group_indexes[triangle_1_closer]]
+
+
+        checked_children_groups_mask = (checked_children_types == ENTITY_TYPE_MAP['group'])[:, 0]
+        checked_children_groups_indexes = np.where(checked_children_groups_mask)[0]
+        checked_children_group_ids = checked_children_ids[checked_children_groups_mask, :]
+        checked_children_group_ids_0 = checked_children_group_ids[:, 0]
+        checked_children_group_ids_1 = checked_children_group_ids[:, 1]
+
+        group_0_hits, group_0_distances = hits_box(ray_starts[checked_children_groups_mask, :],
+                                                   ray_directions[checked_children_groups_mask, :],
+                                                   bbs[checked_children_group_ids_0, :, :],
+                                                   return_distances=True)
+        group_1_hits, group_1_distances = hits_box(ray_starts[checked_children_groups_mask, :],
+                                                   ray_directions[checked_children_groups_mask, :],
+                                                   bbs[checked_children_group_ids_1, :, :],
+                                                   return_distances=True)
+        group_0_hits[group_0_distances > min_hit_distances[checked_children_groups_mask]] = 0
+        group_1_hits[group_1_distances > min_hit_distances[checked_children_groups_mask]] = 0
+        # BOTH GROUPS HIT
+        both_groups_hit_mask = group_0_hits & group_1_hits
+        both_groups_hit_indexes = np.where(both_groups_hit_mask)[0]
+        group_1_closer = group_1_distances[both_groups_hit_mask] < group_0_distances[both_groups_hit_mask]
+        swap_indexes = both_groups_hit_indexes[group_1_closer]
+        swap_id_0 = checked_children_group_ids_0[swap_indexes]
+        checked_children_group_ids_0[swap_indexes] = checked_children_group_ids_1[swap_indexes]
+        checked_children_group_ids_1[swap_indexes] = swap_id_0
+
+        candidate_lengths -= 1
+
+        candidates[checked_children_groups_indexes[group_1_hits], candidate_lengths[checked_children_groups_indexes[group_1_hits]]] = checked_children_group_ids_1[group_1_hits]
+        candidate_lengths[checked_children_groups_indexes[group_1_hits]] += 1
+
+        candidates[checked_children_groups_indexes[group_0_hits], candidate_lengths[checked_children_groups_indexes[group_0_hits]]] = checked_children_group_ids_0[group_0_hits]
+        candidate_lengths[checked_children_groups_indexes[group_0_hits]] += 1
+
+        candidate_mask = candidate_lengths > 0
+        if not candidate_mask.any():
+            break
+        ray_starts = ray_starts[candidate_mask, :]
+        ray_directions = ray_directions[candidate_mask, :]
+        ray_indexes = ray_indexes[candidate_mask]
+        candidates = candidates[candidate_mask, :]
+        candidate_lengths = candidate_lengths[candidate_mask]
+        min_hit_distances = min_hit_distances[candidate_mask]
+    print(i)
+    hits = np.zeros(ray_count)
+    hits[ray_indexes] = 1
+    return ray_hit_ids
 
 def hits_box(ray_starts, ray_directions, bbs, return_distances=False):
     bbs_min = bbs[:, 0, :]
@@ -252,8 +358,19 @@ def hits_sphere(ray_starts, ray_directions, spheres_pos, spheres_r):
     # normals[hits] = ray_starts[hits, :] + ray_directions[hits, :] * hit_distances[:, None]
     return distances
 
-def hits_triangle(ray_starts, ray_directions, spheres_pos, spheres_r)
-    pass
+
+def hits_triangle(ray_starts, ray_directions, triangles_Ts, triangles_normals, triangles_h):
+    # normals = triangles_data[:, 12:]
+    # Ts = triangles_data[:, :12].reshape(-1, 3, 4)
+    hit_distances = (triangles_h - (ray_starts * triangles_normals).sum(axis=-1)) / (ray_directions * triangles_normals).sum(axis=-1)
+    hit_points = ray_starts + ray_directions * hit_distances[:, None]
+    ws = triangles_Ts @ np.concatenate((hit_points, np.ones((hit_points.shape[0], 1))), axis=-1)[:,:, None]
+    ws = ws[:,:,0]
+    hits = np.bitwise_and((ws <= 1),(ws >= 0)).all(axis=-1)
+    distances = np.ones(ray_starts.shape[0]) * INF_DISTANCE
+    distances[hits] = hit_distances[hits]
+    return distances
+
 
 def render(objects: list[Renderable], camera: Camera):
     bvh = get_object_tree_greedy(objects, max_objs_per_bb=2)
@@ -280,7 +397,9 @@ def render(objects: list[Renderable], camera: Camera):
 if __name__ == "__main__":
     width = 1000
     height = 1000
-    print(hits_sphere(np.array([[0, 0, 0]]), np.array([[1, 0, 0]]), np.array([[10, 0.999999, 0]]), np.array([1])))
+    triangle = Triangle(np.array([[0, 1, 0],[0, -1, -1],[0 , -1, 1]]))
+    # print(hit_triangle(np.array([-10, 0, 0]), np.array([1, 0, 0]), triangle.serialize()))
+    # print(hit_triangle(np.array([[0, 0, 0]]), np.array([[1, 0, 0]]), np.array([[10, 0.999999, 0]]), np.array([1])))
     sphere_count = 1000
     sphere_positions = np.random.random((sphere_count, 3)) * 20
     sphere_radius = np.random.random(sphere_count) * 0.3
