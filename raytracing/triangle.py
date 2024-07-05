@@ -14,7 +14,7 @@ class Triangle(Renderable):
         T = data.T
         T = np.concatenate((T, np.ones((1, 3))))
         self. T = np.linalg.inv(T.T @ T) @ T.T
-        self.h = np.dot(normal, data[0, :])
+        self.h = np.dot(self.normal, data[0, :])
 
     def get_bb(self):
         return np.stack((self.data.min(axis=0), self.data.max(axis=0)))

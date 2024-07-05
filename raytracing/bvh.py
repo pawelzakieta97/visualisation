@@ -10,8 +10,8 @@ from sphere import Sphere
 np.random.seed(0)
 
 
-def get_object_tree_greedy(meshes: list[Renderable], max_objs_per_bb=5, max_depth=10) -> Group:
-    if len(meshes) <= max_objs_per_bb or max_depth<=1:
+def get_object_tree_greedy(meshes: list[Renderable], max_objs_per_bb=5, max_depth=1000) -> Group:
+    if len(meshes) <= max_objs_per_bb:
         return Group(meshes)
     bbs = np.stack([mesh.get_bb() for mesh in meshes])
     centers = bbs.mean(axis=1)

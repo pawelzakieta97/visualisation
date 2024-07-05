@@ -216,6 +216,9 @@ def hit3(rays, bbs, group_child_indexes, children_types, triangles_data):
     ray_directions = rays[1]
     depth = 128
 
+
+    _ray_starts = ray_starts.copy()
+    _ray_directions = ray_directions.copy()
     # candidates - objects that are hit and should be explored
     candidates = np.zeros((ray_count, depth)).astype(int)
     candidates_min_possible_distance = np.ones_like(candidates) * INF_DISTANCE
@@ -230,20 +233,22 @@ def hit3(rays, bbs, group_child_indexes, children_types, triangles_data):
     triangles_h = triangles_data[:, 15]
     triangles_normals = triangles_data[:, 12:15]
     triangles_Ts = triangles_data[:, :12].reshape(-1, 3, 4)
-
+    group_history = []
     for i in range(20000):
         # id of elements to be checked (both groups and primitives)
         explored_ids = candidates[np.arange(candidates.shape[0]), candidate_lengths-1]
-
+        group_history.append(explored_ids)
         checked_children_ids = group_child_indexes[explored_ids, :]
         checked_children_types = children_types[explored_ids, :]
-
         checked_children_triangle_mask = (checked_children_types == ENTITY_TYPE_MAP['triangle'])[:, 0]
+        # ray_hit_ids[ray_indexes[checked_children_triangle_mask]] = i
         checked_children_triangle_indexes = np.where(checked_children_triangle_mask)[0]
         checked_children_triangle_ids = checked_children_ids[checked_children_triangle_mask, :]
         checked_children_triangle_ids_0 = checked_children_triangle_ids[:, 0]
         checked_children_triangle_ids_1 = checked_children_triangle_ids[:, 1]
-
+        if (checked_children_triangle_ids_0).any():
+            # ray_hit_ids[ray_indexes[checked_children_triangle_mask]] = i
+            pass
         triangle_0_distances = hits_triangle(ray_starts[checked_children_triangle_mask],
                                          ray_directions[checked_children_triangle_mask],
                                          triangles_Ts[checked_children_triangle_ids_0, :, :],
@@ -264,7 +269,8 @@ def hit3(rays, bbs, group_child_indexes, children_types, triangles_data):
         min_hit_distances[checked_children_triangle_indexes[multi_element_group_indexes[triangle_1_closer]]] = triangle_1_distances[triangle_1_closer]
         ray_hit_ids[ray_indexes[checked_children_triangle_indexes[multi_element_group_indexes[triangle_1_closer]]]] = (
             checked_children_triangle_ids_1)[multi_element_group_indexes[triangle_1_closer]]
-
+        if (triangle_0_distances < INF_DISTANCE).any() or (triangle_1_distances < INF_DISTANCE).any():
+            pass
 
         checked_children_groups_mask = (checked_children_types == ENTITY_TYPE_MAP['group'])[:, 0]
         checked_children_groups_indexes = np.where(checked_children_groups_mask)[0]
@@ -276,10 +282,14 @@ def hit3(rays, bbs, group_child_indexes, children_types, triangles_data):
                                                    ray_directions[checked_children_groups_mask, :],
                                                    bbs[checked_children_group_ids_0, :, :],
                                                    return_distances=True)
+        # group_0_hits[:] = 1
+        # group_0_distances[:] = 0
         group_1_hits, group_1_distances = hits_box(ray_starts[checked_children_groups_mask, :],
                                                    ray_directions[checked_children_groups_mask, :],
                                                    bbs[checked_children_group_ids_1, :, :],
                                                    return_distances=True)
+        # group_1_hits[:] = 1
+        # group_1_distances[:] = 0
         group_0_hits[group_0_distances > min_hit_distances[checked_children_groups_mask]] = 0
         group_1_hits[group_1_distances > min_hit_distances[checked_children_groups_mask]] = 0
         # BOTH GROUPS HIT
