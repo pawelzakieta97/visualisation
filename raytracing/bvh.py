@@ -1,9 +1,12 @@
+import time
+
 import numpy as np
 import pandas as pd
 
 from raytracing.group import Group
 from raytracing.renderable import Renderable
 from sphere import Sphere
+
 # import plotly.express as px
 
 
@@ -39,8 +42,45 @@ def get_object_tree_greedy(meshes: list[Renderable], max_objs_per_bb=5, max_dept
             if total_cost < min_cost:
                 min_cost = total_cost
                 split = [sorted_idxs[:i], sorted_idxs[i:]]
-    groups = [get_object_tree_greedy([meshes[s] for s in split[0]], max_objs_per_bb=max_objs_per_bb, max_depth=max_depth-1),
-              get_object_tree_greedy([meshes[s] for s in split[1]], max_objs_per_bb=max_objs_per_bb, max_depth=max_depth-1)]
+    groups = [
+        get_object_tree_greedy([meshes[s] for s in split[0]], max_objs_per_bb=max_objs_per_bb, max_depth=max_depth - 1),
+        get_object_tree_greedy([meshes[s] for s in split[1]], max_objs_per_bb=max_objs_per_bb, max_depth=max_depth - 1)]
+    return Group(groups)
+
+
+def get_object_tree_fast(meshes: list[Renderable], max_objs_per_bb=5, max_depth=1000) -> Group:
+    if len(meshes) <= max_objs_per_bb:
+        return Group(meshes)
+    bbs = np.stack([mesh.get_bb() for mesh in meshes])
+    centers = bbs.mean(axis=1)
+    min_cost = np.inf
+    split = None
+    for axis in range(3):
+        sorted_idxs = np.argsort(centers[:, axis])
+        left_bb_mins = np.minimum.accumulate(bbs[sorted_idxs][:, 0, :], axis=0)
+        left_bb_maxs = np.maximum.accumulate(bbs[sorted_idxs][:, 1, :], axis=0)
+        left_bb_sizes = left_bb_maxs - left_bb_mins
+        left_surfaces = 2 * (left_bb_sizes[:, 0] * left_bb_sizes[:, 1] +
+                             left_bb_sizes[:, 1] * left_bb_sizes[:, 2] +
+                             left_bb_sizes[:, 0] * left_bb_sizes[:, 2])
+
+        right_bb_mins = np.minimum.accumulate(bbs[sorted_idxs[::-1]][:, 0, :], axis=0)[::-1]
+        right_bb_maxs = np.maximum.accumulate(bbs[sorted_idxs[::-1]][:, 1, :], axis=0)[::-1]
+        right_bb_sizes = right_bb_maxs - right_bb_mins
+        right_surfaces = 2 * (right_bb_sizes[:, 0] * right_bb_sizes[:, 1] +
+                              right_bb_sizes[:, 1] * right_bb_sizes[:, 2] +
+                              right_bb_sizes[:, 0] * right_bb_sizes[:, 2])
+
+        left_object_counts = np.arange(1, len(meshes)+1)
+        right_object_counts = np.arange(len(meshes), 0, -1)
+        total_costs = left_surfaces * left_object_counts + right_surfaces * right_object_counts
+        split_idx = total_costs.argmin()
+        if total_costs[split_idx] < min_cost:
+            split = [sorted_idxs[:split_idx+1], sorted_idxs[split_idx+1:]]
+            min_cost = total_costs[split_idx]
+    groups = [
+        get_object_tree_greedy([meshes[s] for s in split[0]], max_objs_per_bb=max_objs_per_bb, max_depth=max_depth - 1),
+        get_object_tree_greedy([meshes[s] for s in split[1]], max_objs_per_bb=max_objs_per_bb, max_depth=max_depth - 1)]
     return Group(groups)
 
 

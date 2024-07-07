@@ -4,7 +4,7 @@ import numpy as np
 
 from models.parse_obj import parse_obj
 from models.primitives.cube import Cube
-from raytracing.bvh import get_object_tree_greedy
+from raytracing.bvh import get_object_tree_greedy, get_object_tree_fast
 from raytracing.camera import Camera
 from raytracing.group import Group
 from raytracing.renderable import Renderable
@@ -13,7 +13,9 @@ from raytracing.triangle import Triangle
 import pickle
 
 def render(objects: list[Renderable], camera: Camera):
+    start = time.time()
     bvh = get_object_tree_greedy(objects, max_objs_per_bb=2)
+    print(time.time() - start)
     pickle.dump(bvh, open("bvh.p", "wb"))
     def _get_max_depth(bvh: Group, start=0) -> int:
         if not isinstance(bvh, Group):
