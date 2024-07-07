@@ -1,6 +1,5 @@
 import numpy as np
 
-from raytracing.sphere import Sphere
 from raytracing.renderable import Renderable
 
 
@@ -91,8 +90,3 @@ class Group(Renderable):
             elements = new_elements
             bbs.append(level_bbs)
         return bbs
-
-if __name__ == '__main__':
-    spheres = [Sphere(radius=2), Sphere(np.array([2,0,0]))]
-    group = Group(spheres)
-    group.get_bb()
