@@ -14,7 +14,8 @@ import pickle
 
 def render(objects: list[Renderable], camera: Camera):
     start = time.time()
-    bvh = get_object_tree_greedy(objects, max_objs_per_bb=2)
+    bvh = get_object_tree_fast(objects, max_objs_per_bb=2)
+    print('BVH generated')
     print(time.time() - start)
     pickle.dump(bvh, open("bvh.p", "wb"))
     def _get_max_depth(bvh: Group, start=0) -> int:
@@ -49,11 +50,12 @@ def render(objects: list[Renderable], camera: Camera):
 
 
 if __name__ == "__main__":
-    vertices, triangles = parse_obj('../obj/bunny.obj')
-    vertices = vertices * 20
+    vertices, triangles = parse_obj('../obj/dragon.obj')
+    print('obj loaded')
+    vertices = vertices * 1/20
     #
     triangles1 = [Triangle(vertices[triangle]) for triangle in triangles]
-
+    print('triangles processed')
     width = 1000
     height = 1000
     camera = Camera(width=width, height=height,

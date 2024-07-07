@@ -1,3 +1,4 @@
+import sys
 import time
 
 import numpy as np
@@ -6,7 +7,7 @@ import pandas as pd
 from raytracing.group import Group
 from raytracing.renderable import Renderable
 from sphere import Sphere
-
+import numba as nb
 # import plotly.express as px
 
 
@@ -47,8 +48,11 @@ def get_object_tree_greedy(meshes: list[Renderable], max_objs_per_bb=5, max_dept
         get_object_tree_greedy([meshes[s] for s in split[1]], max_objs_per_bb=max_objs_per_bb, max_depth=max_depth - 1)]
     return Group(groups)
 
-
+sys.setrecursionlimit(10_000)
 def get_object_tree_fast(meshes: list[Renderable], max_objs_per_bb=5, max_depth=1000) -> Group:
+    print(len(meshes))
+    if len(meshes) == 3:
+        pass
     if len(meshes) <= max_objs_per_bb:
         return Group(meshes)
     bbs = np.stack([mesh.get_bb() for mesh in meshes])
@@ -71,16 +75,18 @@ def get_object_tree_fast(meshes: list[Renderable], max_objs_per_bb=5, max_depth=
                               right_bb_sizes[:, 1] * right_bb_sizes[:, 2] +
                               right_bb_sizes[:, 0] * right_bb_sizes[:, 2])
 
-        left_object_counts = np.arange(1, len(meshes)+1)
-        right_object_counts = np.arange(len(meshes), 0, -1)
+        # object counts are off by one - this way the first object is "free" which forces the algorithm to always
+        # split objects to separate groups until reaching minimum objects per bb
+        left_object_counts = np.arange(len(meshes))
+        right_object_counts = np.arange(len(meshes)-1, -1, -1)
         total_costs = left_surfaces * left_object_counts + right_surfaces * right_object_counts
         split_idx = total_costs.argmin()
         if total_costs[split_idx] < min_cost:
             split = [sorted_idxs[:split_idx+1], sorted_idxs[split_idx+1:]]
             min_cost = total_costs[split_idx]
     groups = [
-        get_object_tree_greedy([meshes[s] for s in split[0]], max_objs_per_bb=max_objs_per_bb, max_depth=max_depth - 1),
-        get_object_tree_greedy([meshes[s] for s in split[1]], max_objs_per_bb=max_objs_per_bb, max_depth=max_depth - 1)]
+        get_object_tree_fast([meshes[s] for s in split[0]], max_objs_per_bb=max_objs_per_bb, max_depth=max_depth - 1),
+        get_object_tree_fast([meshes[s] for s in split[1]], max_objs_per_bb=max_objs_per_bb, max_depth=max_depth - 1)]
     return Group(groups)
 
 
@@ -107,6 +113,13 @@ def vis_group(group: Group):
 
 
 if __name__ == '__main__':
+    import time
+    s = time.time()
+    res = get_object_tree_fast_nb(30)
+    print(time.time() - s)
+    s = time.time()
+    res = get_object_tree_fast_nb(30)
+    print(time.time() - s)
     sphere_count = 100
     sphere_positions = np.random.random((sphere_count, 3))
     sphere_radius = np.random.random(sphere_count) * 0.05
