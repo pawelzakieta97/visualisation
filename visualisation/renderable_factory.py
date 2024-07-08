@@ -2,6 +2,7 @@ from typing import Union, Type
 
 from models.compound_mesh import CompoundMesh
 from models.mesh import Mesh
+from visualisation.map import Map
 from visualisation.renderable import CompoundRenderable
 from visualisation.shader import Shader
 from visualisation.shaders.line_shader import LineShader
@@ -23,5 +24,6 @@ def get_renderable(model, shader_cls: Type[Shader], *args, **kwargs) -> Union[Vi
 
 DEFAULT_OBJECT_SHADERS = {
     VisObject: StandardShader,
-    Wireframe: LineShader
+    Wireframe: LineShader,
+    Map: StandardShader
 }

@@ -23,7 +23,7 @@ class Light:
 
     def get_transformation_matrix(self):
         if self._transformation_matrix is None:
-            projection_matrix = get_perspective_projection_matrix(fov=np.pi * 0.8, aspect_ratio=1,
+            projection_matrix = get_perspective_projection_matrix(fov=np.pi * 0.75, aspect_ratio=1,
                                                                   near=self.near, far=self.far)
             view_matrix = look_at(self.position, target=np.zeros(3))
             self._transformation_matrix = projection_matrix @ np.linalg.inv(view_matrix)

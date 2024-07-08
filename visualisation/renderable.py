@@ -14,6 +14,7 @@ class Renderable(object):
         self.material = material
         self.shader = Shader()
         self.shader_cls = shader_cls
+        self.casts_shadows = False
 
     def load(self):
         pass
