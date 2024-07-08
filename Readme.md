@@ -36,5 +36,7 @@ To demonstrate, a ray tracing module has been added.
 It uses a AABB BVH to massively accelerate searching for closest ray-object intersection. 
 This allows for efficient O(log(n)) rendering of complex meshes
 ![image](https://github.com/pawelzakieta97/visualisation/assets/28107745/fc95ad0a-6888-4aba-9f07-bfd3cab19255)
+![image](https://github.com/pawelzakieta97/visualisation/assets/28107745/736cfada-3b21-4be0-a7fb-f0f9f146729b)
+![image](https://github.com/pawelzakieta97/visualisation/assets/28107745/a52474b2-9cdd-4c64-8ddb-7e51c8ce7f31)
 
 
