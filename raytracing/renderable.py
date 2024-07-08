@@ -2,9 +2,13 @@ from abc import ABC, abstractmethod
 
 
 INF_DISTANCE = 9999999
-
+MIN_DISTANCE = 0.0001
 
 class Renderable(ABC):
+    def __init__(self, material=None):
+        # TODO: create material class
+        self.material = material
+
     @abstractmethod
     def get_bb(self):
         pass

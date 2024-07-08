@@ -1,10 +1,11 @@
 import numpy as np
 
-from raytracing.renderable import Renderable, INF_DISTANCE
+from raytracing.renderable import Renderable, INF_DISTANCE, MIN_DISTANCE
 
 
 class Triangle(Renderable):
     def __init__(self, data: np.array):
+        super().__init__()
         self.data = data
         a = data[1, :] - data[0, :]
         b = data[2, :] - data[1, :]
@@ -25,6 +26,7 @@ class Triangle(Renderable):
 def hits_triangle(ray_starts, ray_directions, triangles_Ts, triangles_normals, triangles_h):
     # normals = triangles_data[:, 12:]
     # Ts = triangles_data[:, :12].reshape(-1, 3, 4)
+
     hit_distances = (triangles_h - (ray_starts * triangles_normals).sum(axis=-1)) / (ray_directions * triangles_normals).sum(axis=-1)
     hit_points = ray_starts + ray_directions * hit_distances[:, None]
     ws = triangles_Ts @ np.concatenate((hit_points, np.ones((hit_points.shape[0], 1))), axis=-1)[:,:, None]
@@ -32,4 +34,5 @@ def hits_triangle(ray_starts, ray_directions, triangles_Ts, triangles_normals, t
     hits = np.bitwise_and((ws <= 1),(ws >= 0)).all(axis=-1)
     distances = np.ones(ray_starts.shape[0]) * INF_DISTANCE
     distances[hits] = hit_distances[hits]
+    distances[distances < MIN_DISTANCE] = INF_DISTANCE
     return distances

@@ -43,24 +43,24 @@ class Group(Renderable):
         id_to_element = {}
         element_to_id = {}
         for element in all_elements:
-            if type(element) not in element_to_id:
-                element_to_id[type(element)] = {}
-                id_to_element[type(element)] = {}
-            element_id = len(element_to_id[type(element)])
-            element_to_id[type(element)][element] = element_id
-            id_to_element[type(element)][element_id] = element
+            if element.get_type_id() not in element_to_id:
+                element_to_id[element.get_type_id()] = {}
+                id_to_element[element.get_type_id()] = {}
+            element_id = len(element_to_id[element.get_type_id()])
+            element_to_id[element.get_type_id()][element] = element_id
+            id_to_element[element.get_type_id()][element_id] = element
 
-        group_child_types = [None] * len(id_to_element[Group])
-        group_child_indexes = [None] * len(id_to_element[Group])
-        group_bbs = [None] * len(id_to_element[Group])
+        group_child_types = [None] * len(id_to_element[Group.get_type_id()])
+        group_child_indexes = [None] * len(id_to_element[Group.get_type_id()])
+        group_bbs = [None] * len(id_to_element[Group.get_type_id()])
 
         children_data = {}
 
         for element_type in id_to_element.keys():
-            if element_type == Group:
-                for group_id, group in id_to_element[Group].items():
-                    group_child_types[group_id] = [type(element) for element in group.elements]
-                    group_child_indexes[group_id] = [element_to_id[type(element)][element] for element in
+            if element_type == Group.get_type_id():
+                for group_id, group in id_to_element[Group.get_type_id()].items():
+                    group_child_types[group_id] = [element.get_type_id() for element in group.elements]
+                    group_child_indexes[group_id] = [element_to_id[element.get_type_id()][element] for element in
                                                      group.elements]
                     group_bbs[group_id] = group.get_bb()
             else:

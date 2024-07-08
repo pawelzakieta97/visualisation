@@ -6,21 +6,24 @@ import numpy as np
 
 from raytracing.group import Group
 
-from raytracing.bvh import get_object_tree_fast, hit_triangle_bvh, get_object_tree_greedy
+from raytracing.bvh import get_object_tree_fast, hit_triangle_bvh
 from raytracing.camera import Camera
 from raytracing.renderable import Renderable
+from raytracing.sky import Sky
 from raytracing.triangle import Triangle
-from raytracing.sphere import Sphere
+from raytracing.utils import uniform_sphere
 
 np.random.seed(2)
 
 
-def render(objects: list[Renderable], camera: Camera):
+def render(objects: list[Renderable], camera: Camera, bounces=5, sky=None):
     start = time.time()
     bvh = get_object_tree_fast(objects, max_objs_per_bb=2)
     print('BVH generated')
     print(time.time() - start)
     pickle.dump(bvh, open("bvh.p", "wb"))
+    if sky is None:
+        sky = Sky()
     def _get_max_depth(bvh: Group, start=0) -> int:
         if not isinstance(bvh, Group):
             return start
@@ -35,18 +38,41 @@ def render(objects: list[Renderable], camera: Camera):
     # bvh = bvh.elements[0]
     group_child_types, group_child_indexes, group_bbs, children_data = bvh.serialize()
     group_bbs = np.array(group_bbs)
-    group_child_types = np.array([[c.get_type_id() if c!=-1 else -1 for c in child_types] for child_types in group_child_types])
-    triangles_data = children_data[Triangle]
-    triangles_data = np.array(triangles_data)
+    triangles_data = np.array(children_data[Triangle.get_type_id()])
+    triangle_normals = triangles_data[:, 12:15]
+
+    # mock material properties
+    diffuses = np.ones_like(triangle_normals) * 0.5
+
+    group_child_types = np.array(group_child_types)
     group_child_indexes = np.array(group_child_indexes)
     rays = camera.get_rays()
+    ray_starts = rays[0]
+    ray_directions = rays[1]
+    ray_colors = np.ones_like(ray_starts)
+    img = np.zeros((camera.height * camera.width, 3), dtype=float)
+    ray_indexes = np.arange(ray_starts.shape[0], dtype=int)
+    for bounce in range(bounces):
+        hit_ids, ray_hit_distances = hit_triangle_bvh((ray_starts[ray_indexes],
+                                                       ray_directions[ray_indexes]), group_bbs, group_child_indexes, group_child_types, triangles_data)
+        hit_mask = hit_ids != -1
 
-    res = hit_triangle_bvh(rays, group_bbs, group_child_indexes, group_child_types, triangles_data)
-    return res
+        # handle environment hits
+        ray_colors[ray_indexes[~hit_mask], :] *= sky.get_color(ray_starts[ray_indexes[~hit_mask], :],
+                                                               ray_directions[ray_indexes[~hit_mask], :])
 
-if __name__ == '__main__':
-    s = Sphere()
-    t = Triangle(np.random.random((3,3)))
-    print(s.get_type_id())
-    print(t.get_type_id())
-    print(s.get_type_id())
+        # handle geometry hits
+        ray_indexes = ray_indexes[hit_mask]
+        hit_ids = hit_ids[hit_mask]
+        ray_hit_distances = ray_hit_distances[hit_mask]
+        hit_points = ray_starts[ray_indexes, :] + ray_directions[ray_indexes, :] * ray_hit_distances[:, None]
+        hit_normals = triangle_normals[hit_ids, :]
+        hit_diffuses = diffuses[hit_ids, :]
+        scatter_directions = hit_normals + uniform_sphere(hit_normals.shape[0])
+        scatter_directions /= np.linalg.norm(scatter_directions, axis=1)[:, None]
+        ray_starts[ray_indexes] = hit_points
+        ray_directions[ray_indexes] = scatter_directions
+        ray_colors[ray_indexes] *= hit_diffuses
+
+    img = ray_colors.reshape(camera.height, camera.width, 3)[::-1, :, ::-1]
+    return img

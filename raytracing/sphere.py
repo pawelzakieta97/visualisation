@@ -5,6 +5,7 @@ from raytracing.renderable import Renderable, INF_DISTANCE
 
 class Sphere(Renderable):
     def __init__(self, pos: np.array = None, radius: float = 1):
+        super().__init__()
         if pos is None:
             pos = np.zeros(3)
         self.pos = pos

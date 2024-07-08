@@ -157,14 +157,13 @@ def hit_triangle_bvh(rays, bbs, group_child_indexes, children_types, triangles_d
     _ray_directions = ray_directions.copy()
     # candidates - objects that are hit and should be explored
     candidates = np.zeros((ray_count, depth)).astype(int)
-    candidates_min_possible_distance = np.ones_like(candidates) * INF_DISTANCE
     candidate_lengths = np.ones(ray_count).astype(int)
     min_hit_distances = np.ones(ray_count) * INF_DISTANCE
-    # min_hit_distances = np.random.random(ray_count) * 40
 
     ray_indexes = np.arange(ray_count)
 
     ray_hit_ids = np.ones(ray_count, dtype=int) * -1
+    ray_hit_distances = np.ones(ray_count) * INF_DISTANCE
 
     triangles_h = triangles_data[:, 15]
     triangles_normals = triangles_data[:, 12:15]
@@ -205,8 +204,7 @@ def hit_triangle_bvh(rays, bbs, group_child_indexes, children_types, triangles_d
         min_hit_distances[checked_children_triangle_indexes[multi_element_group_indexes[triangle_1_closer]]] = triangle_1_distances[triangle_1_closer]
         ray_hit_ids[ray_indexes[checked_children_triangle_indexes[multi_element_group_indexes[triangle_1_closer]]]] = (
             checked_children_triangle_ids_1)[multi_element_group_indexes[triangle_1_closer]]
-        if (triangle_0_distances < INF_DISTANCE).any() or (triangle_1_distances < INF_DISTANCE).any():
-            pass
+
 
         checked_children_groups_mask = (checked_children_types == Group.get_type_id())[:, 0]
         checked_children_groups_indexes = np.where(checked_children_groups_mask)[0]
@@ -250,14 +248,15 @@ def hit_triangle_bvh(rays, bbs, group_child_indexes, children_types, triangles_d
             break
         ray_starts = ray_starts[candidate_mask, :]
         ray_directions = ray_directions[candidate_mask, :]
-        ray_indexes = ray_indexes[candidate_mask]
+        ray_hit_distances[ray_indexes] = min_hit_distances
         candidates = candidates[candidate_mask, :]
         candidate_lengths = candidate_lengths[candidate_mask]
         min_hit_distances = min_hit_distances[candidate_mask]
+        ray_indexes = ray_indexes[candidate_mask]
     print(i)
     hits = np.zeros(ray_count)
     hits[ray_indexes] = 1
-    return ray_hit_ids
+    return ray_hit_ids, ray_hit_distances
 
 
 def hit_sphere_bvh(rays, bbs, group_child_indexes, children_types, spheres_data):
@@ -278,6 +277,7 @@ def hit_sphere_bvh(rays, bbs, group_child_indexes, children_types, spheres_data)
     ray_indexes = np.arange(ray_count)
 
     ray_hit_ids = np.ones(ray_count, dtype=int) * -1
+    ray_hit_distances = np.ones(ray_count) * INF_DISTANCE
     spheres_pos = spheres_data[:, :3]
     spheres_r = spheres_data[:, 3]
     for i in range(20000):
@@ -350,11 +350,12 @@ def hit_sphere_bvh(rays, bbs, group_child_indexes, children_types, spheres_data)
             break
         ray_starts = ray_starts[candidate_mask, :]
         ray_directions = ray_directions[candidate_mask, :]
-        ray_indexes = ray_indexes[candidate_mask]
         candidates = candidates[candidate_mask, :]
         candidate_lengths = candidate_lengths[candidate_mask]
         min_hit_distances = min_hit_distances[candidate_mask]
+        ray_hit_distances[ray_indexes] = min_hit_distances
+        ray_indexes = ray_indexes[candidate_mask]
     print(i)
     hits = np.zeros(ray_count)
     hits[ray_indexes] = 1
-    return ray_hit_ids
+    return ray_hit_ids, ray_hit_distances
