@@ -10,7 +10,9 @@ This allows for efficient O(log(n)) rendering of complex meshes.
 In order to traverse the BVH faster, it has been vectorized using numpy. 
 It is possible to accelerate the process even further with pyTorch tensors.
 <!--![image](https://github.com/pawelzakieta97/visualisation/assets/28107745/fc95ad0a-6888-4aba-9f07-bfd3cab19255)-->
-![image](https://github.com/pawelzakieta97/visualisation/assets/28107745/105fb33b-e073-4c89-9005-962a0e6bd40e)
+![Screenshot from 2024-07-09 19-25-00](https://github.com/pawelzakieta97/visualisation/assets/28107745/19c4ba25-fd02-450e-8056-945959b8b89e)
+
+<!--![image](https://github.com/pawelzakieta97/visualisation/assets/28107745/105fb33b-e073-4c89-9005-962a0e6bd40e)-->
 
 *2000x2000 image with 5k polygons took ~90 seconds including calculating the BVH*
 
