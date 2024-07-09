@@ -14,7 +14,7 @@ It is possible to accelerate the process even further with pyTorch tensors.
 
 <!--![image](https://github.com/pawelzakieta97/visualisation/assets/28107745/105fb33b-e073-4c89-9005-962a0e6bd40e)-->
 
-*2000x2000 image with 5k polygons took ~90 seconds including calculating the BVH*
+*3200x3200 image with 5k polygons took ~6 minutes including calculating the BVH*
 
 
 ![image](https://github.com/pawelzakieta97/visualisation/assets/28107745/736cfada-3b21-4be0-a7fb-f0f9f146729b)
