@@ -29,7 +29,7 @@ class MeshViewWindow(GlutWindow):
         self.menu = None
         self.vis_objects = []
         if light is None or not light:
-            light = Light(position=np.array([-5, 10, -7]), color=np.array([1, 1, 1]))
+            light = Light(position=np.array([-5, 10, 7]), color=np.array([1, 1, 1]))
 
         self.light = light
         self.controller = MVPController(orthographic=orthographic, enable_control=enable_control)

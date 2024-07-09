@@ -15,24 +15,7 @@ from visualisation.meshViewer import MeshViewWindow
 np.random.seed(2)
 if __name__ == "__main__":
     win = MeshViewWindow(add_floorgrid=True, orthographic=False, target_fps=60)
-    # sphere_count = 1000
-    # sphere_positions = np.random.random((sphere_count, 3)) * 10
-    # sphere_radius = np.random.random(sphere_count) * 0.05
-    # sphere_positions[:, 1] = sphere_radius * 0
-
-    sphere_count = 1000
-    sphere_positions = np.random.random((sphere_count, 3)) * 20
-    sphere_radius = np.random.random(sphere_count) * 0.2
-    sphere_positions[:, 1] = sphere_radius * 0
-
-    spheres = [Sphere(pos, r) for pos, r in zip(sphere_positions, sphere_radius)]
-    sphere_meshes = []
-    # for sphere in spheres:
-    #     sphere_mesh = SphereMesh(sphere.radius)
-    #     sphere_mesh.set_position(position=sphere.pos)
-    #     win.add_object(sphere_mesh)
-
-    tree = get_object_tree_greedy(spheres, max_objs_per_bb=2)
+    win.light.position[2] = 7
     tree = pickle.load(open('bvh.p', 'rb'))
     for triangle in tree.get_elements():
         triangle_mesh = Mesh(triangle.data, np.array([[0,1,2],[1,2,0],[2,1,0]]))
@@ -86,7 +69,7 @@ if __name__ == "__main__":
             wireframe = Wireframe(lines, colors=colors)
             win.add_object(wireframe)
         level += 1
-    win.controller.pos = np.array([5, 3, 5.0])
+    win.controller.pos = np.array([-0.5,1,3.0])
     win.controller.yaw = 0
     win.controller.pitch = 0
     win.controller.fov=90

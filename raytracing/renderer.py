@@ -8,7 +8,8 @@ from raytracing.group import Group
 
 from raytracing.bvh import get_object_tree_fast, hit_triangle_bvh
 from raytracing.camera import Camera
-from raytracing.renderable import Renderable
+from raytracing.light import SunLight, Light
+from raytracing.renderable import Renderable, INF_DISTANCE
 from raytracing.sky import Sky
 from raytracing.triangle import Triangle
 from raytracing.utils import uniform_sphere
@@ -16,7 +17,10 @@ from raytracing.utils import uniform_sphere
 np.random.seed(2)
 
 
-def render(objects: list[Renderable], camera: Camera, bounces=5, sky=None):
+def render(objects: list[Renderable], camera: Camera, bounces=5, sky=None,
+           lights: list[Light] = None):
+    if lights is None:
+        lights = [SunLight()]
     start = time.time()
     bvh = get_object_tree_fast(objects, max_objs_per_bb=2)
     print('BVH generated')
@@ -50,6 +54,7 @@ def render(objects: list[Renderable], camera: Camera, bounces=5, sky=None):
     ray_starts = rays[0]
     ray_directions = rays[1]
     ray_colors = np.ones_like(ray_starts)
+    image_color = np.zeros_like(ray_starts)
     img = np.zeros((camera.height * camera.width, 3), dtype=float)
     ray_indexes = np.arange(ray_starts.shape[0], dtype=int)
     for bounce in range(bounces):
@@ -58,8 +63,10 @@ def render(objects: list[Renderable], camera: Camera, bounces=5, sky=None):
         hit_mask = hit_ids != -1
 
         # handle environment hits
-        ray_colors[ray_indexes[~hit_mask], :] *= sky.get_color(ray_starts[ray_indexes[~hit_mask], :],
+        image_color[ray_indexes[~hit_mask], :] += ray_colors[ray_indexes[~hit_mask], :] * sky.get_color(ray_starts[ray_indexes[~hit_mask], :],
                                                                ray_directions[ray_indexes[~hit_mask], :])
+        # ray_colors[ray_indexes[~hit_mask], :] *= sky.get_color(ray_starts[ray_indexes[~hit_mask], :],
+        #                                                        ray_directions[ray_indexes[~hit_mask], :])
 
         # handle geometry hits
         ray_indexes = ray_indexes[hit_mask]
@@ -74,5 +81,14 @@ def render(objects: list[Renderable], camera: Camera, bounces=5, sky=None):
         ray_directions[ray_indexes] = scatter_directions
         ray_colors[ray_indexes] *= hit_diffuses
 
-    img = ray_colors.reshape(camera.height, camera.width, 3)[::-1, :, ::-1]
+        # explicit samples towards light sources
+        for light in lights:
+            p2l = light.get_light_direction(hit_points)
+            obstacle_id, obstacle_distances = hit_triangle_bvh((ray_starts[ray_indexes], p2l), group_bbs, group_child_indexes, group_child_types,
+                                                  triangles_data)
+            # TODO: change to light.get_distance()
+            light_visible = obstacle_distances == INF_DISTANCE
+            image_color[ray_indexes[light_visible]] += ray_colors[ray_indexes[light_visible]] * (p2l * hit_normals)[light_visible].sum(axis=1)[:, None] * light.color[None, :]
+
+    img = image_color.reshape(camera.height, camera.width, 3)[::-1, :, ::-1]
     return img

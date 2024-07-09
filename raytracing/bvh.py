@@ -169,6 +169,7 @@ def hit_triangle_bvh(rays, bbs, group_child_indexes, children_types, triangles_d
     triangles_normals = triangles_data[:, 12:15]
     triangles_Ts = triangles_data[:, :12].reshape(-1, 3, 4)
     group_history = []
+    search_depth = np.zeros(ray_starts.shape[0])
     for i in range(20000):
         # id of elements to be checked (both groups and primitives)
         explored_ids = candidates[np.arange(candidates.shape[0]), candidate_lengths-1]
@@ -182,7 +183,7 @@ def hit_triangle_bvh(rays, bbs, group_child_indexes, children_types, triangles_d
         checked_children_triangle_ids_0 = checked_children_triangle_ids[:, 0]
         checked_children_triangle_ids_1 = checked_children_triangle_ids[:, 1]
         if (checked_children_triangle_ids_0).any():
-            # ray_hit_ids[ray_indexes[checked_children_triangle_mask]] = i
+            search_depth[ray_indexes] += 1
             pass
         triangle_0_distances = hits_triangle(ray_starts[checked_children_triangle_mask],
                                          ray_directions[checked_children_triangle_mask],
