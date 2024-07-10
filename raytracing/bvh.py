@@ -1,7 +1,9 @@
 import sys
 import time
 
+import numba
 import numpy as np
+import torch
 import pandas as pd
 
 from raytracing.group import Group
@@ -80,16 +82,64 @@ def get_object_tree_fast(meshes: list[Renderable], max_objs_per_bb=5, max_depth=
         # object counts are off by one - this way the first object is "free" which forces the algorithm to always
         # split objects to separate groups until reaching minimum objects per bb
         left_object_counts = np.arange(len(meshes))
-        right_object_counts = np.arange(len(meshes)-1, -1, -1)
+        right_object_counts = np.arange(len(meshes) - 1, -1, -1)
         total_costs = left_surfaces * left_object_counts + right_surfaces * right_object_counts
         split_idx = total_costs.argmin()
         if total_costs[split_idx] < min_cost:
-            split = [sorted_idxs[:split_idx+1], sorted_idxs[split_idx+1:]]
+            split = [sorted_idxs[:split_idx + 1], sorted_idxs[split_idx + 1:]]
             min_cost = total_costs[split_idx]
     groups = [
         get_object_tree_fast([meshes[s] for s in split[0]], max_objs_per_bb=max_objs_per_bb, max_depth=max_depth - 1),
         get_object_tree_fast([meshes[s] for s in split[1]], max_objs_per_bb=max_objs_per_bb, max_depth=max_depth - 1)]
     return Group(groups)
+
+
+def get_object_tree_faster(meshes: list[Renderable], max_objs_per_bb=5, max_depth=1000) -> Group:
+
+    bbs = np.stack([mesh.get_bb() for mesh in meshes])
+    centers = bbs.mean(axis=1)
+    indexes = np.arange(len(meshes))
+    def _bhv(_bbs: np.array, _centers: np.array, indexes, max_objs_per_bb):
+        if _bbs.shape[0] <= max_objs_per_bb:
+            return indexes.tolist()
+        min_cost = np.inf
+        split = None
+        for axis in range(3):
+            sorted_idxs = np.argsort(_centers[:, axis])
+            left_bb_mins = np.minimum.accumulate(_bbs[sorted_idxs][:, 0, :], axis=0)
+            left_bb_maxs = np.maximum.accumulate(_bbs[sorted_idxs][:, 1, :], axis=0)
+            left_bb_sizes = left_bb_maxs - left_bb_mins
+            left_surfaces = 2 * (left_bb_sizes[:, 0] * left_bb_sizes[:, 1] +
+                                 left_bb_sizes[:, 1] * left_bb_sizes[:, 2] +
+                                 left_bb_sizes[:, 0] * left_bb_sizes[:, 2])
+
+            right_bb_mins = np.minimum.accumulate(_bbs[sorted_idxs[::-1]][:, 0, :], axis=0)[::-1]
+            right_bb_maxs = np.maximum.accumulate(_bbs[sorted_idxs[::-1]][:, 1, :], axis=0)[::-1]
+            right_bb_sizes = right_bb_maxs - right_bb_mins
+            right_surfaces = 2 * (right_bb_sizes[:, 0] * right_bb_sizes[:, 1] +
+                                  right_bb_sizes[:, 1] * right_bb_sizes[:, 2] +
+                                  right_bb_sizes[:, 0] * right_bb_sizes[:, 2])
+
+            # object counts are off by one - this way the first object is "free" which forces the algorithm to always
+            # split objects to separate groups until reaching minimum objects per bb
+            left_object_counts = np.arange(_bbs.shape[0])
+            right_object_counts = np.arange(_bbs.shape[0]-1, -1, -1)
+            total_costs = left_surfaces * left_object_counts + right_surfaces * right_object_counts
+            split_idx = total_costs.argmin()
+            if total_costs[split_idx] < min_cost:
+                split = [sorted_idxs[:split_idx+1], sorted_idxs[split_idx+1:]]
+                min_cost = total_costs[split_idx]
+        groups = [
+            _bhv(_bbs[split[0]], _centers[split[0]], indexes[split[0]], max_objs_per_bb=max_objs_per_bb),
+            _bhv(_bbs[split[1]], _centers[split[1]], indexes[split[1]], max_objs_per_bb=max_objs_per_bb)]
+        return groups
+    tree = _bhv(bbs, centers, indexes, max_objs_per_bb)
+    def _group(tree: list|int):
+        if isinstance(tree, int):
+            return meshes[tree]
+        return Group(elements=[_group(child) for child in tree])
+    tree = _group(tree)
+    return tree
 
 
 def vis_group(group: Group):

@@ -6,7 +6,7 @@ import numpy as np
 
 from raytracing.group import Group
 
-from raytracing.bvh import get_object_tree_fast, hit_triangle_bvh
+from raytracing.bvh import get_object_tree_fast, hit_triangle_bvh, get_object_tree_faster
 from raytracing.camera import Camera
 from raytracing.light import SunLight, Light
 from raytracing.renderable import Renderable, INF_DISTANCE
@@ -22,7 +22,7 @@ def render(objects: list[Renderable], camera: Camera, bounces=5, sky=None,
     if lights is None:
         lights = [SunLight()]
     start = time.time()
-    bvh = get_object_tree_fast(objects, max_objs_per_bb=2)
+    bvh = get_object_tree_faster(objects, max_objs_per_bb=2)
     print('BVH generated')
     print(time.time() - start)
     pickle.dump(bvh, open("bvh.p", "wb"))

@@ -12,7 +12,7 @@ import pickle
 from transformations import get_rotation_matrix_y
 
 if __name__ == "__main__":
-    model_name = 'bunny'
+    model_name = 'dragon'
     rotation = np.pi if model_name == 'dragon' else 0
     camera_pos = [0, 1, 3.5] if model_name == 'dragon' else [0, 2, 5.0]
     vertices, triangles = parse_obj(f'../obj/{model_name}_normalized.obj')
@@ -28,8 +28,8 @@ if __name__ == "__main__":
                                           [10, 0, 10]]))
                        ]
     print('triangles processed')
-    width = 3200
-    height = 3200
+    width = 300
+    height = 300
     camera = Camera(width=width, height=height,
                     position=np.array(camera_pos), yaw=0, pitch=0)
     start = time.time()
