@@ -1,4 +1,6 @@
 import numpy as np
+import torch
+
 
 class Light:
     def get_light_direction(self, pos: np.array):
@@ -16,3 +18,6 @@ class SunLight(Light):
 
     def get_light_direction(self, pos: np.array):
         return self.pos[None, :] * np.ones((pos.shape[0], 1))
+
+    def get_light_direction_torch(self, pos: torch.Tensor):
+        return torch.Tensor(self.pos[None, :]).to(pos.device) * torch.ones((pos.shape[0], 1)).to(pos.device)
