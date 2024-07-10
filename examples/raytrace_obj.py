@@ -13,8 +13,8 @@ from transformations import get_rotation_matrix_y
 
 if __name__ == "__main__":
     model_name = 'bunny'
-    rotation = np.pi if model_name == 'dragon' else 0
-    camera_pos = [0, 1, 3.5] if model_name == 'dragon' else [0, 2, 5.0]
+    rotation = 1.2*np.pi if model_name == 'dragon' else 0
+    camera_pos = [0, 1, 4] if model_name == 'dragon' else [0, 2, 5.0]
     vertices, triangles = parse_obj(f'../obj/{model_name}_normalized.obj')
     m = get_rotation_matrix_y(rotation)
     vertices = (m @ np.concatenate((vertices, np.ones((vertices.shape[0], 1))), axis=1).T).T[:,:3]
@@ -36,6 +36,7 @@ if __name__ == "__main__":
     res = render(triangles1 + floor_triangles, camera)
     hdr_image = 1/(1+1/res)
     pickle.dump(res, open(f'raytrace_{model_name}.pkl', 'wb'))
-    cv2.imwrite(f'raytrace_{model_name}.png', (res/res.max() * 255).astype(np.uint8))
+    pickle.dump(hdr_image, open(f'raytrace_{model_name}_reinhard.pkl', 'wb'))
+    cv2.imwrite(f'raytrace_{model_name}.png', (hdr_image * 255).astype(np.uint8))
     print(time.time() - start)
     pass
