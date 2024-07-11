@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 
 
 class Sky:
@@ -22,3 +23,13 @@ class Sky:
         return (zenith_weight[:, None] * self.zenith_color[None, :] +
                 horizon_weight[:, None] * self.horizon_color[None, :] +
                 floor_weight[:, None] * self.floor_color[None, :])
+    def get_color_torch(self, ray_starts: torch.Tensor, ray_directions: torch.Tensor):
+        device = ray_directions.device
+        zenith_weight = ray_directions[:, 1].clone()
+        zenith_weight[ray_directions[:, 1]<0] = 0
+        horizon_weight = 1 - ray_directions[:, 1]
+        horizon_weight[ray_directions[:, 1]<0] = 0
+        floor_weight = ray_directions[:, 1] < 0
+        return (zenith_weight[:, None] * torch.Tensor(self.zenith_color[None, :]).to(device) +
+                horizon_weight[:, None] * torch.Tensor(self.horizon_color[None, :]).to(device) +
+                floor_weight[:, None] * torch.Tensor(self.floor_color[None, :]).to(device))
