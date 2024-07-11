@@ -13,10 +13,10 @@ from transformations import get_rotation_matrix_y
 
 if __name__ == "__main__":
     gpu_render = True
-    model_name = 'bunny'
+    model_name = 'dragon'
     samples = 10
-    rotation = np.pi if model_name == 'dragon' else 0
-    camera_pos = [0, 1, 3.5] if model_name == 'dragon' else [0, 2, 5.0]
+    rotation = 1.2 * np.pi if model_name == 'dragon' else 0
+    camera_pos = [-0.4, 1, 4] if model_name == 'dragon' else [0, 2, 5.0]
     vertices, triangles = parse_obj(f'../obj/{model_name}_normalized.obj')
     m = get_rotation_matrix_y(rotation)
     vertices = (m @ np.concatenate((vertices, np.ones((vertices.shape[0], 1))), axis=1).T).T[:,:3]
