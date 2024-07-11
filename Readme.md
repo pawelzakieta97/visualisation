@@ -8,13 +8,15 @@ To demonstrate, a ray tracing module has been added.
 It uses a AABB BVH to massively accelerate searching for closest ray-object intersection. 
 This allows for efficient O(log(n)) rendering of complex meshes.
 In order to traverse the BVH faster, it has been vectorized using numpy. 
-It is possible to accelerate the process even further with pyTorch tensors.
+Runnig on the render on GPU with pyTorch Tensors on CUDA further speeds up the process.
 <!--![image](https://github.com/pawelzakieta97/visualisation/assets/28107745/fc95ad0a-6888-4aba-9f07-bfd3cab19255)-->
-![Screenshot from 2024-07-09 19-25-00](https://github.com/pawelzakieta97/visualisation/assets/28107745/19c4ba25-fd02-450e-8056-945959b8b89e)
+<!--![Screenshot from 2024-07-09 19-25-00](https://github.com/pawelzakieta97/visualisation/assets/28107745/19c4ba25-fd02-450e-8056-945959b8b89e)-->
+![image](https://github.com/pawelzakieta97/visualisation/assets/28107745/066a9116-b68f-4d74-9d2d-2b9a1e56b992)
+
 
 <!--![image](https://github.com/pawelzakieta97/visualisation/assets/28107745/105fb33b-e073-4c89-9005-962a0e6bd40e)-->
 
-*3200x3200 image with 5k polygons took ~6 minutes including calculating the BVH*
+*2000x2000 image with 5k polygons and 10 samples took ~90s including calculating the BVH*
 
 
 ![image](https://github.com/pawelzakieta97/visualisation/assets/28107745/736cfada-3b21-4be0-a7fb-f0f9f146729b)
