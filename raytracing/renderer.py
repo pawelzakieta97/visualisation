@@ -138,6 +138,7 @@ def render_torch(objects: list[Renderable], camera: Camera, samples=1, bounces=5
     group_child_types = torch.Tensor(group_child_types).to(device, dtype=torch.uint8)
     group_child_indexes = torch.Tensor(group_child_indexes).to(device, dtype=torch.int32)
     image_color = None
+    compiled = torch.compile(hit_triangle_bvh_torch)
     for sample in range(samples):
         rays = camera.get_rays()
         ray_starts = torch.Tensor(rays[0]).to(device)
@@ -147,7 +148,11 @@ def render_torch(objects: list[Renderable], camera: Camera, samples=1, bounces=5
             image_color = torch.zeros_like(ray_starts).to(device)
         ray_indexes = torch.arange(ray_starts.shape[0], dtype=torch.int32).to(device)
         for bounce in range(bounces):
-            hit_ids, ray_hit_distances = hit_triangle_bvh_torch((ray_starts[ray_indexes],
+            # hit_ids, ray_hit_distances = hit_triangle_bvh_torch((ray_starts[ray_indexes],
+            #                                                      ray_directions[ray_indexes]), group_bbs,
+            #                                                     group_child_indexes, group_child_types, triangles_data,
+            #                                                     device=device)
+            hit_ids, ray_hit_distances = compiled((ray_starts[ray_indexes],
                                                                  ray_directions[ray_indexes]), group_bbs,
                                                                 group_child_indexes, group_child_types, triangles_data,
                                                                 device=device)

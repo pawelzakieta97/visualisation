@@ -40,6 +40,7 @@ class MeshViewWindow(GlutWindow):
         self.MVP_ID = None
         self.object_transformation_id = None
         self.camera_transformation_id = None
+        self.shadow_vaos = {}
         self.render_groups = {}
 
     def init_opengl(self):
@@ -105,14 +106,21 @@ class MeshViewWindow(GlutWindow):
             merged.load()
             shadow_casters = [merged]
         for vis_obj in shadow_casters:
+            if vis_obj not in self.shadow_vaos:
+                self.shadow_vaos[vis_obj] = glGenVertexArrays(1)
+                glBindVertexArray(self.shadow_vaos[vis_obj])
+
+                glEnableVertexAttribArray(0)
+                glBindBuffer(GL_ARRAY_BUFFER, vis_obj.vertex_buffer)
+                glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, None)
+
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vis_obj.indices_buffer)
+
+            else:
+                glBindVertexArray(self.shadow_vaos[vis_obj])
+
             glUniformMatrix4fv(self.object_transformation_id, 1, GL_FALSE,
                                vis_obj.mesh.transformation.T)
-
-            glEnableVertexAttribArray(0)
-            glBindBuffer(GL_ARRAY_BUFFER, vis_obj.vertex_buffer)
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, None)
-
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vis_obj.indices_buffer)
             glDrawElements(
                 GL_TRIANGLES,  # mode
                 len(vis_obj.mesh.triangle_indices) * 3,  # // count

@@ -18,6 +18,7 @@ class Mesh:
         self.color: np.array = color
         self.uv = uv
         self.vertices = vertices
+        self._triangle_normals = None
         if normals is None:
             normals = self.get_normals()
 

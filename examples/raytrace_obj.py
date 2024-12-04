@@ -13,7 +13,7 @@ from transformations import get_rotation_matrix_y
 
 if __name__ == "__main__":
     gpu_render = True
-    model_name = 'dragon'
+    model_name = 'bunny'
     samples = 10
     rotation = 1.2 * np.pi if model_name == 'dragon' else 0
     camera_pos = [-0.4, 1, 4] if model_name == 'dragon' else [0, 2, 5.0]

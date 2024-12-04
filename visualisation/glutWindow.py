@@ -32,6 +32,9 @@ class GlutWindow:
         print(gl.glGetString(gl.GL_VENDOR))
 
     def init_opengl(self):
+        oglut.glutInitContextVersion(4, 2)
+        oglut.glutInitContextFlags(oglut.GLUT_FORWARD_COMPATIBLE)
+        oglut.glutInitContextProfile(oglut.GLUT_CORE_PROFILE)
         oglut.glutInit(sys.argv)
         oglut.glutInitWindowSize(self.width, self.height)
         self.window = oglut.glutCreateWindow(self.window_name)

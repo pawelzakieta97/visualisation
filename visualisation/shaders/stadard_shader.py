@@ -84,7 +84,7 @@ class StandardShader(Shader):
             glUniformMatrix4fv(self.object_transformation_id, 1, GL_FALSE,
                                vis_object.mesh.transformation.T)
             # glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vis_object.indices_buffer)
-            self.bind_material(vis_object)
+            # self.bind_material(vis_object)
             glDrawElements(
                 GL_TRIANGLES,  # mode
                 len(vis_object.mesh.triangle_indices) * 3,  # // count
@@ -145,5 +145,5 @@ class StandardShader(Shader):
             vao = glGenVertexArrays(1)
             glBindVertexArray(vao)
             self.bind_buffers(vis_object)
-            # self.bind_material(vis_object)
+            self.bind_material(vis_object)
             self.vaos[vis_object] = vao

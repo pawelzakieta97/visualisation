@@ -33,17 +33,17 @@ class Cube(Mesh):
                  size: Union[float, Sequence] = 1.0,
                  smooth=False):
         vertices, triangle_indices = get_unit_cube_vertices()
-        super().__init__(vertices, triangle_indices)
-        if not smooth:
-            self.flatten()
-            self.uv = np.zeros((self.vertices.shape[0], 2))
-            self.uv = self.get_uv()
         if position is None:
             position = [0, 0, 0]
         if isinstance(size, float) or isinstance(size, int):
             size = [size, size, size]
         vertices *= np.array(size)[None, :]
         vertices += np.array(position)[None, :]
+        super().__init__(vertices, triangle_indices)
+        if not smooth:
+            self.flatten()
+            self.uv = np.zeros((self.vertices.shape[0], 2))
+            self.uv = self.get_uv()
 
     def get_uv(self):
         uvs = np.zeros((self.vertices.shape[0], 2))
