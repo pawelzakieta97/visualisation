@@ -2,6 +2,7 @@ import numpy as np
 from OpenGL.GL import *  # pylint: disable=W0614
 
 from models.wireframe import Wireframe as WireframeModel
+from transformations import get_translation_matrix
 from visualisation.renderable import Renderable
 from visualisation.shader import Shader
 

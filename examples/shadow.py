@@ -12,7 +12,7 @@ if __name__ == "__main__":
     win = MeshViewWindow(add_floorgrid=False, orthographic=False, target_fps=60)
     win.light.cast_shadows = True
     win.light.position = np.array([0.1, 4, 0])
-    image_data = np.array(Image.open('../resources/lena.png'))
+    image_data = np.array(Image.open('../resources/dirt.jpg'))
     plane = Mesh(vertices=np.array([[-1, 0, -1],
                                     [-1, 0, 1],
                                     [1, 0, 1],

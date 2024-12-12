@@ -24,5 +24,5 @@ class FloorGrid(Wireframe):
         lines = np.vstack((lines_x, lines_y)).reshape(-1, 3)
         colors = np.ones_like(lines) * 0.2
         colors[line_count-1: line_count+1, 0] = 1
-        colors[3*line_count-1: 3*line_count+1, 1] = 1
+        colors[3*line_count-1: 3*line_count+1, 2] = 1
         super().__init__(lines=lines, colors=colors)

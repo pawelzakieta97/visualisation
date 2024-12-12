@@ -48,7 +48,7 @@ class LineShader(Shader):
                 wireframe.model.changed = False
 
             self.bind_buffers(wireframe)
-            glUniformMatrix4fv(self.object_transformation_id, 1, GL_FALSE, np.eye(4).T)
+            glUniformMatrix4fv(self.object_transformation_id, 1, GL_FALSE, wireframe.model.transformation)
 
             glDrawArrays(GL_LINES, 0, len(wireframe.model.lines.flatten()) // 3)
 

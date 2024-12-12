@@ -21,18 +21,21 @@ class XPBD:
                 obj.v += self.g * h
                 obj.mesh.transformation[:3, -1] += obj.v * h
                 obj.w += h * 0.5 * obj.I_inv * (-np.cross(obj.w, obj.I * obj.w))
+                # dw1 = h * 0.5 * 1/I1 * - (w2I3w3 - w3I2w2) = h * 0.5 * 1/I1 * w2 * w3 * (I2 - I3)
                 q = rotation_matrix_to_quaternion(obj.mesh.transformation)
                 q_prev = q.copy()
-                q += 0.5 * h * quaternion_multiply([obj.w[0], obj.w[1], obj.w[2], 0], q)
+
+                q += 0.5 * h * quaternion_multiply(q, [obj.w[0], obj.w[1], obj.w[2], 0])
                 q /= np.linalg.norm(q)
                 obj.mesh.transformation[:3, :3] = quaternion_to_rotation_matrix(q)
-                print(q)
                 pass
                 # prev_orientation = obj.mesh.transformation[:3, :3].copy()
                 # """https://physics.stackexchange.com/questions/293037/how-to-compute-the-angular-velocity-from-the-angles-of-a-rotation-matrix"""
-                # dM = np.array([[1, -obj.w[2], obj.w[1]],
-                #                [obj.w[2], 1, -obj.w[0]],
-                #                [-obj.w[1], obj.w[0], 1]])
+                # dR = np.array([[0, -obj.w[2], obj.w[1]],
+                #                [obj.w[2], 0, -obj.w[0]],
+                #                [-obj.w[1], obj.w[0], 0]]) * h + np.eye(3)
+                # obj.mesh.transformation[:3, :3] = obj.mesh.transformation[:3, :3] @ dR
+
                 # obj.mesh.transformation[:3, :3] = obj.mesh.transformation[:3, :3] @ dM
                 # # projection to valid rotation matrix
                 # """https://stackoverflow.com/questions/23080791/eigen-re-orthogonalization-of-rotation-matrix"""

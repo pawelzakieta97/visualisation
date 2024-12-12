@@ -25,5 +25,5 @@ def get_renderable(model, shader_cls: Type[Shader], *args, **kwargs) -> Union[Vi
 DEFAULT_OBJECT_SHADERS = {
     VisObject: StandardShader,
     Wireframe: LineShader,
-    Map: StandardShader
+    Map: StandardShader,
 }

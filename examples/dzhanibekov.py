@@ -3,6 +3,7 @@ from sympy import Plane
 
 from models.coords import Arrow
 from models.mesh import Mesh
+from models.multi_mesh import merge_meshes
 from models.primitives.cube import Cube
 from models.wireframe import Wireframe
 from simulations.collider import Collider
@@ -12,31 +13,33 @@ from visualisation.meshViewer import MeshViewWindow
 
 if __name__ == '__main__':
     cube_mesh = Cube()
-    cube_mesh.vertices *= np.array([1,2, 0.2])
+    cube_mesh.vertices *= np.array([7, 1, 1])
+    cube_mesh1 = Cube()
+    cube_mesh1.vertices += np.array([3, 1, 0])
+    cube_mesh = merge_meshes([cube_mesh, cube_mesh1], as_mesh=True)
     cube = Collider(cube_mesh)
-    plane = Mesh(vertices=np.array([[-1, 0, -1],
-                                    [-1, 0, 1],
-                                    [1, 0, 1],
-                                    [1, 0, -1]]) * 10.0,
-                 triangle_indices=np.array([[0, 1, 2], [2, 3, 0]]))
-    plane = Collider(plane, static=True)
-    cube.mesh.translate(dy=3)
+    # cube.mesh.translate(dy=3)
     # cube.mesh.rotate_y(np.pi/4)
-    # cube.mesh.rotate_z(np.pi/4)
     # cube.mesh.rotate_x(np.pi/3)
-    cube.w = np.array([1,0.2,0]) * 3.0
+    cube.w = np.array([0.1,1,0]) * 10.0
 
 
-    arrow = Arrow()
     win = MeshViewWindow(add_floorgrid=True, orthographic=False, target_fps=60)
     win.add_object(cube.mesh)
-    win.add_object(plane.mesh)
-    win.add_object(arrow)
+    win.add_object(cube.mesh)
+
+    arrow = Arrow()
     xpbd = XPBD([cube])
+    win.add_object(arrow)
+    # xpbd.step()
+    arrow.set(start=cube.mesh.transformation[:3, 3],
+              end=cube.mesh.transformation[:3, 3] + cube.mesh.transformation[:3, :3] @ cube.w)
+
     def tick():
-        xpbd.step()
+        # xpbd.step()
         arrow.set(start=cube.mesh.transformation[:3, 3],
                   end=cube.mesh.transformation[:3, 3] + cube.mesh.transformation[:3, :3] @ cube.w)
 
     win.run(tick)
+
 
