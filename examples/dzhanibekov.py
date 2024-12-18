@@ -21,7 +21,7 @@ if __name__ == '__main__':
     # cube.mesh.translate(dy=3)
     # cube.mesh.rotate_y(np.pi/4)
     # cube.mesh.rotate_x(np.pi/3)
-    cube.w = np.array([0.1,1,0]) * 10.0
+    cube.w = np.array([0.00001,1,0]) * 10.0
 
 
     win = MeshViewWindow(add_floorgrid=True, orthographic=False, target_fps=60)
@@ -34,9 +34,8 @@ if __name__ == '__main__':
     # xpbd.step()
     arrow.set(start=cube.mesh.transformation[:3, 3],
               end=cube.mesh.transformation[:3, 3] + cube.mesh.transformation[:3, :3] @ cube.w)
-
     def tick():
-        # xpbd.step()
+        xpbd.step()
         arrow.set(start=cube.mesh.transformation[:3, 3],
                   end=cube.mesh.transformation[:3, 3] + cube.mesh.transformation[:3, :3] @ cube.w)
 
