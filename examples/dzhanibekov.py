@@ -37,7 +37,7 @@ if __name__ == '__main__':
     def tick():
         xpbd.step()
         arrow.set(start=cube.mesh.transformation[:3, 3],
-                  end=cube.mesh.transformation[:3, 3] + cube.mesh.transformation[:3, :3] @ cube.w)
+                  end=cube.mesh.transformation[:3, 3] + cube.mesh.transformation[:3, :3] @ (cube.w * cube.I)/100)
 
     win.run(tick)
 
